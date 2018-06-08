@@ -2,8 +2,8 @@
 
 [![GoDoc](https://godoc.org/github.com/efritz/chevron?status.svg)](https://godoc.org/github.com/efritz/chevron)
 [![Build Status](https://secure.travis-ci.org/efritz/chevron.png)](http://travis-ci.org/efritz/chevron)
-[![Maintainability](https://api.codeclimate.com/v1/badges/?/maintainability)](https://codeclimate.com/github/efritz/chevron/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/?/test_coverage)](https://codeclimate.com/github/efritz/chevron/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/3be41936bc1b92a617b8/maintainability)](https://codeclimate.com/github/efritz/chevron/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/3be41936bc1b92a617b8/test_coverage)](https://codeclimate.com/github/efritz/chevron/test_coverage)
 
 WAIT A MINUTE.
 
