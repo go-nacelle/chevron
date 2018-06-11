@@ -12,11 +12,19 @@ import (
 )
 
 type (
+	// Router stores
 	Router interface {
 		http.Handler
 
+		// AddMiddleware registers middleware for all resources registered after
+		// the invocation of this method.
 		AddMiddleware(middleware Middleware)
+
+		// Register creates a resource from the given resource spec and set of
+		// middleware instances and registers it to the given URL pattern.
 		Register(url string, spec ResourceSpec, configs ...MiddlewareConfig) error
+
+		// MustRegister calls Register and panics on error.
 		MustRegister(url string, spec ResourceSpec, configs ...MiddlewareConfig)
 	}
 
@@ -31,10 +39,10 @@ type (
 		baseCtx               context.Context
 	}
 
-	handlerMap       map[Method]Handler
-	MiddlewareConfig func(handlerMap) error
+	handlerMap map[Method]Handler
 )
 
+// NewRouter creates a new router.
 func NewRouter(container *nacelle.ServiceContainer, configs ...RouterConfig) Router {
 	r := &router{
 		container:             container,
@@ -54,10 +62,17 @@ func NewRouter(container *nacelle.ServiceContainer, configs ...RouterConfig) Rou
 	return r
 }
 
+// AddMiddleware registers middleware for all resources. This middleware is not
+// retroactively applied to resources which have already been registered (so
+// attention to the order in which middleware is registered is required on the
+// part of the developer).
 func (r *router) AddMiddleware(middleware Middleware) {
 	r.middleware = append(r.middleware, middleware)
 }
 
+// Register creates a resource from the given resource spec and set of
+// middleware instances and registers it to the given URL pattern. It
+// is an error to register the same URL pattern twice.
 func (r *router) Register(url string, spec ResourceSpec, configs ...MiddlewareConfig) error {
 	if _, ok := r.resources[url]; ok {
 		return fmt.Errorf("resource already registered to url pattern `%s`", url)
@@ -103,12 +118,15 @@ func (r *router) decorateResource(spec ResourceSpec, configs ...MiddlewareConfig
 	return &resource{hm: hm, router: r}, nil
 }
 
+// MustRegister calls Register and panics on error.
 func (r *router) MustRegister(url string, spec ResourceSpec, configs ...MiddlewareConfig) {
 	if err := r.Register(url, spec, configs...); err != nil {
 		panic(err.Error())
 	}
 }
 
+// ServeHTTP invokes the handler registered to the request URL and
+// writes the response to the given ResponseWriter.
 func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	r.mux.ServeHTTP(w, req)
 }

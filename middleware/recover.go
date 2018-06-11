@@ -10,12 +10,16 @@ import (
 	"github.com/efritz/chevron"
 )
 
+// NewRecovery creates middleware that captures panics from the handler
+// and converts them to 500-level responses. The value of the panic is
+// logged at error level.
 func NewRecovery() chevron.Middleware {
 	return func(f chevron.Handler) (chevron.Handler, error) {
 		handler := func(ctx context.Context, req *http.Request, logger nacelle.Logger) (resp response.Response) {
 			defer func() {
 				if err := recover(); err != nil {
-					logger.Error("Request handler panic'd (%s)", err)
+					// TODO - should add stack in logs
+					logger.Error("Request handler panicked (%s)", err)
 					resp = response.Empty(http.StatusInternalServerError)
 				}
 			}()

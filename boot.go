@@ -1,10 +1,15 @@
 package chevron
 
 import (
+	"os"
+
 	"github.com/efritz/nacelle"
 	"github.com/efritz/nacelle/process"
 )
 
+// Boot creates a nacelle Bootstrapper with the given name and
+// registers an HTTP server with the given route initializer.
+// This method does not return.
 func Boot(name string, initializer RouteInitializer) {
 	boostrapper := nacelle.NewBootstrapper(
 		name,
@@ -12,7 +17,7 @@ func Boot(name string, initializer RouteInitializer) {
 		setupProcessesFactory(initializer),
 	)
 
-	boostrapper.Boot()
+	os.Exit(boostrapper.Boot())
 }
 
 func defaultSetupConfigs(config nacelle.Config) error {

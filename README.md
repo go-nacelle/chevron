@@ -5,7 +5,12 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/3be41936bc1b92a617b8/maintainability)](https://codeclimate.com/github/efritz/chevron/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/3be41936bc1b92a617b8/test_coverage)](https://codeclimate.com/github/efritz/chevron/test_coverage)
 
-WAIT A MINUTE.
+Chevron is a REST API framework built on top of the concepts brought to you
+by [nacelle](https://github.com/efritz/nacelle).
+
+## Overview
+
+TODO
 
 ## License
 
