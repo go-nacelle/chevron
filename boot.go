@@ -7,9 +7,9 @@ import (
 	"github.com/efritz/nacelle/process"
 )
 
-// Boot creates a nacelle Bootstrapper with the given name and
-// registers an HTTP server with the given route initializer.
-// This method does not return.
+// Boot creates a nacelle Bootstrapper with the given name and registers
+// an HTTP server with the given route initializer. This method does not
+// return.
 func Boot(name string, initializer RouteInitializer) {
 	boostrapper := nacelle.NewBootstrapper(
 		name,
@@ -17,6 +17,7 @@ func Boot(name string, initializer RouteInitializer) {
 		setupProcessesFactory(initializer),
 	)
 
+	// TODO - check for uses in other projects
 	os.Exit(boostrapper.Boot())
 }
 

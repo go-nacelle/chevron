@@ -15,10 +15,10 @@ func (s *MiddlewareOptionsSuite) TestWithMiddleware(t sweet.T) {
 		numCalls = 0
 	)
 
-	middleware := func(h Handler) (Handler, error) {
+	middleware := MiddlewareFunc(func(h Handler) (Handler, error) {
 		numCalls++
 		return makeEmptyHandler(106), nil
-	}
+	})
 
 	// Apply the middleware config
 	Expect(WithMiddleware(middleware)(hm)).To(BeNil())
@@ -33,9 +33,9 @@ func (s *MiddlewareOptionsSuite) TestWithMiddleware(t sweet.T) {
 }
 
 func (s *MiddlewareOptionsSuite) TestWithMiddlewareError(t sweet.T) {
-	middleware := func(h Handler) (Handler, error) {
+	middleware := MiddlewareFunc(func(h Handler) (Handler, error) {
 		return nil, fmt.Errorf("utoh")
-	}
+	})
 
 	// Apply the middleware config
 	Expect(WithMiddleware(middleware)(makeTestHandlerMap())).To(MatchError("utoh"))
@@ -47,10 +47,10 @@ func (s *MiddlewareOptionsSuite) TestWithMiddlewareFor(t sweet.T) {
 		numCalls = 0
 	)
 
-	middleware := func(h Handler) (Handler, error) {
+	middleware := MiddlewareFunc(func(h Handler) (Handler, error) {
 		numCalls++
 		return makeEmptyHandler(106), nil
-	}
+	})
 
 	// Apply the middleware config
 	Expect(WithMiddlewareFor(middleware, MethodGet, MethodPatch)(hm)).To(BeNil())

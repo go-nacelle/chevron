@@ -74,14 +74,14 @@ func (s *RouterSuite) TestRegisterWithMiddleware(t sweet.T) {
 	)
 
 	middlewareFactory := func(name string) Middleware {
-		return func(h Handler) (Handler, error) {
+		return MiddlewareFunc(func(h Handler) (Handler, error) {
 			handler := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 				calls = append(calls, name)
 				return h(ctx, r, logger)
 			}
 
 			return handler, nil
-		}
+		})
 	}
 
 	// Add global middleware
