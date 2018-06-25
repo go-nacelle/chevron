@@ -21,7 +21,7 @@ func (s *SpecSuite) TestEmptySpecComposition(t sweet.T) {
 	Expect(resp.StatusCode()).To(Equal(http.StatusOK))
 
 	// Check response
-	data, err := response.Serialize(resp)
+	_, data, err := response.Serialize(resp)
 	Expect(err).To(BeNil())
 	Expect(data).To(MatchJSON(`["foo", "bar", "baz"]`))
 
