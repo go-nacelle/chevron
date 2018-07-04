@@ -28,7 +28,7 @@ type (
 	}
 
 	router struct {
-		container             nacelle.ServiceContainer
+		services              nacelle.ServiceContainer
 		logger                nacelle.Logger
 		middleware            []Middleware
 		mux                   *mux.Router
@@ -42,9 +42,9 @@ type (
 )
 
 // NewRouter creates a new router.
-func NewRouter(container nacelle.ServiceContainer, configs ...RouterConfig) Router {
+func NewRouter(services nacelle.ServiceContainer, configs ...RouterConfig) Router {
 	r := &router{
-		container:             container,
+		services:              services,
 		logger:                nacelle.NewNilLogger(),
 		mux:                   mux.NewRouter(),
 		resources:             map[string]struct{}{},
@@ -79,7 +79,7 @@ func (r *router) Register(url string, spec ResourceSpec, configs ...MiddlewareCo
 
 	r.resources[url] = struct{}{}
 
-	if err := r.container.Inject(spec); err != nil {
+	if err := r.services.Inject(spec); err != nil {
 		return err
 	}
 

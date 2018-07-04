@@ -33,5 +33,5 @@ func setupRoutes(config nacelle.Config, router chevron.Router) error {
 }
 
 func main() {
-	chevron.Boot("app", chevron.RouteInitializerFunc(setupRoutes))
+	chevron.BootAndExit("app", chevron.RouteInitializerFunc(setupRoutes))
 }
