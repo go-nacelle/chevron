@@ -15,7 +15,7 @@ type RouterSuite struct{}
 
 func (s *RouterSuite) TestRegisterAddsToMux(t sweet.T) {
 	var (
-		container, _ = nacelle.MakeServiceContainer()
+		container, _ = nacelle.NewServiceContainer()
 		router       = NewRouter(container)
 	)
 
@@ -37,7 +37,7 @@ func (s *RouterSuite) TestRegisterAddsToMux(t sweet.T) {
 
 func (s *RouterSuite) TestRegisterInjectsServices(t sweet.T) {
 	var (
-		container, _ = nacelle.MakeServiceContainer()
+		container, _ = nacelle.NewServiceContainer()
 		router       = NewRouter(container)
 	)
 
@@ -54,7 +54,7 @@ func (s *RouterSuite) TestRegisterInjectsServices(t sweet.T) {
 
 func (s *RouterSuite) TestRegisterDuplicateURL(t sweet.T) {
 	var (
-		container, _ = nacelle.MakeServiceContainer()
+		container, _ = nacelle.NewServiceContainer()
 		router       = NewRouter(container)
 	)
 
@@ -68,7 +68,7 @@ func (s *RouterSuite) TestRegisterDuplicateURL(t sweet.T) {
 
 func (s *RouterSuite) TestRegisterWithMiddleware(t sweet.T) {
 	var (
-		container, _ = nacelle.MakeServiceContainer()
+		container, _ = nacelle.NewServiceContainer()
 		router       = NewRouter(container)
 		calls        = []string{}
 	)

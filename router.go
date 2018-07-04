@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/efritz/nacelle"
-	"github.com/efritz/nacelle/log"
 	"github.com/efritz/response"
 	"github.com/gorilla/mux"
 )
@@ -29,7 +28,7 @@ type (
 	}
 
 	router struct {
-		container             *nacelle.ServiceContainer
+		container             nacelle.ServiceContainer
 		logger                nacelle.Logger
 		middleware            []Middleware
 		mux                   *mux.Router
@@ -43,10 +42,10 @@ type (
 )
 
 // NewRouter creates a new router.
-func NewRouter(container *nacelle.ServiceContainer, configs ...RouterConfig) Router {
+func NewRouter(container nacelle.ServiceContainer, configs ...RouterConfig) Router {
 	r := &router{
 		container:             container,
-		logger:                log.NewNilLogger(),
+		logger:                nacelle.NewNilLogger(),
 		mux:                   mux.NewRouter(),
 		resources:             map[string]struct{}{},
 		notFoundHandler:       defaultNotFoundHandler,

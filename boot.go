@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/efritz/nacelle"
-	"github.com/efritz/nacelle/process"
+	basehttp "github.com/efritz/nacelle/base/http"
 )
 
 // Boot creates a nacelle Bootstrapper with the given name and registers
@@ -22,12 +22,12 @@ func Boot(name string, initializer RouteInitializer) {
 }
 
 func defaultSetupConfigs(config nacelle.Config) error {
-	return config.Register(process.HTTPConfigToken, &process.HTTPConfig{})
+	return config.Register(basehttp.ConfigToken, &basehttp.Config{})
 }
 
-func setupProcessesFactory(initializer RouteInitializer) func(*nacelle.ProcessRunner, *nacelle.ServiceContainer) error {
-	return func(runner *nacelle.ProcessRunner, container *nacelle.ServiceContainer) error {
-		runner.RegisterProcess(process.NewHTTPServer(NewInitializer(initializer)))
+func setupProcessesFactory(initializer RouteInitializer) func(nacelle.ProcessContainer, nacelle.ServiceContainer) error {
+	return func(processes nacelle.ProcessContainer, services nacelle.ServiceContainer) error {
+		processes.RegisterProcess(basehttp.NewServer(NewInitializer(initializer)))
 		return nil
 	}
 }

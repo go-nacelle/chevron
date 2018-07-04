@@ -6,7 +6,6 @@ import (
 
 	"github.com/aphistic/sweet"
 	"github.com/efritz/nacelle"
-	"github.com/efritz/nacelle/log"
 	"github.com/efritz/response"
 	. "github.com/onsi/gomega"
 )
@@ -23,16 +22,18 @@ func (s *RecoverSuite) TestBaseline(t sweet.T) {
 	}
 
 	r, _ := http.NewRequest("GET", "/", nil)
-	Expect(func() { handler(context.Background(), r, log.NewNilLogger()) }).To(Panic())
+	Expect(func() { handler(context.Background(), r, nacelle.NewNilLogger()) }).To(Panic())
 }
 
 func (s *RecoverSuite) TestWithRecover(t sweet.T) {
-	handler, err := NewRecovery()(func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
+	handler := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		panic("oops")
-	})
+	}
 
+	wrapped, err := NewRecovery().Convert(handler)
 	Expect(err).To(BeNil())
+
 	r, _ := http.NewRequest("GET", "/", nil)
-	resp := handler(context.Background(), r, log.NewNilLogger())
+	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
 	Expect(resp.StatusCode()).To(Equal(http.StatusInternalServerError))
 }

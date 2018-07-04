@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/efritz/nacelle"
-	"github.com/efritz/nacelle/log"
 	"github.com/efritz/response"
 	"github.com/satori/go.uuid"
 
@@ -34,7 +33,7 @@ func GetRequestID(ctx context.Context) string {
 // and the X-Request-ID header is added to the wrapped handler's resulting
 // response.
 func NewRequestID() chevron.Middleware {
-	return func(f chevron.Handler) (chevron.Handler, error) {
+	return chevron.MiddlewareFunc(func(f chevron.Handler) (chevron.Handler, error) {
 		handler := func(ctx context.Context, req *http.Request, logger nacelle.Logger) response.Response {
 			requestID, err := getRequestIDFromRequest(req)
 			if err != nil {
@@ -48,7 +47,7 @@ func NewRequestID() chevron.Middleware {
 				requestID,
 			)
 
-			wrappedLogger := logger.WithFields(log.Fields{
+			wrappedLogger := logger.WithFields(nacelle.LogFields{
 				"request_id": requestID,
 			})
 
@@ -58,7 +57,7 @@ func NewRequestID() chevron.Middleware {
 		}
 
 		return handler, nil
-	}
+	})
 }
 
 func getRequestIDFromRequest(req *http.Request) (string, error) {

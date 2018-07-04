@@ -4,14 +4,14 @@ import (
 	"net/http"
 
 	"github.com/efritz/nacelle"
-	"github.com/efritz/nacelle/process"
+	basehttp "github.com/efritz/nacelle/base/http"
 )
 
 type (
-	// ServerInitializer implements process.HTTPServerInitializer.
+	// ServerInitializer implements basehttp.ServerInitializer.
 	ServerInitializer struct {
-		Container   *nacelle.ServiceContainer `service:"container"`
-		Logger      nacelle.Logger            `service:"logger"`
+		Services    nacelle.ServiceContainer `service:"container"`
+		Logger      nacelle.Logger           `service:"logger"`
 		initializer RouteInitializer
 	}
 
@@ -32,7 +32,7 @@ func (f RouteInitializerFunc) Init(config nacelle.Config, router Router) error {
 }
 
 // NewInitializer creates a new ServerInitializer.
-func NewInitializer(initializer RouteInitializer) process.HTTPServerInitializer {
+func NewInitializer(initializer RouteInitializer) basehttp.ServerInitializer {
 	return &ServerInitializer{
 		initializer: initializer,
 	}
@@ -42,7 +42,7 @@ func NewInitializer(initializer RouteInitializer) process.HTTPServerInitializer 
 // attached route initializer.
 func (i *ServerInitializer) Init(config nacelle.Config, server *http.Server) error {
 	// TODO - control additional configs with env vars
-	router := NewRouter(i.Container, WithLogger(i.Logger))
+	router := NewRouter(i.Services, WithLogger(i.Logger))
 	server.Handler = router
 	return i.initializer.Init(config, router)
 }
