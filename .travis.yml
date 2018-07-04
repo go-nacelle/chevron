@@ -3,14 +3,15 @@ env:
     - CC_TEST_REPORTER_ID=b86dfd429a551d1534b8110f44df4101de488ed6edbb7932448a19d5e2c3ff3f
 language: go
 go:
-  - 1.9.x
-  - 1.10.x
   - tip
 before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
 script:
-  - go test -coverprofile=c.out -covermode=atomic
+  # Test
+  - go test ./... -coverprofile=c.out -covermode=atomic
+  # Ensure examples build
+  - for app in $(ls examples/ -F | grep /); do go build "github.com/efritz/chevron/examples/$app"; done
 after_script:
   - ./cc-test-reporter after-build --coverage-input-type gocov --exit-code $TRAVIS_TEST_RESULT
