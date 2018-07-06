@@ -21,10 +21,10 @@ type (
 
 		// Register creates a resource from the given resource spec and set of
 		// middleware instances and registers it to the given URL pattern.
-		Register(url string, spec ResourceSpec, configs ...MiddlewareConfig) error
+		Register(url string, spec ResourceSpec, configs ...MiddlewareConfigFunc) error
 
 		// MustRegister calls Register and panics on error.
-		MustRegister(url string, spec ResourceSpec, configs ...MiddlewareConfig)
+		MustRegister(url string, spec ResourceSpec, configs ...MiddlewareConfigFunc)
 	}
 
 	router struct {
@@ -42,7 +42,7 @@ type (
 )
 
 // NewRouter creates a new router.
-func NewRouter(services nacelle.ServiceContainer, configs ...RouterConfig) Router {
+func NewRouter(services nacelle.ServiceContainer, configs ...RouterConfigFunc) Router {
 	r := &router{
 		services:              services,
 		logger:                nacelle.NewNilLogger(),
@@ -72,7 +72,7 @@ func (r *router) AddMiddleware(middleware Middleware) {
 // Register creates a resource from the given resource spec and set of
 // middleware instances and registers it to the given URL pattern. It
 // is an error to register the same URL pattern twice.
-func (r *router) Register(url string, spec ResourceSpec, configs ...MiddlewareConfig) error {
+func (r *router) Register(url string, spec ResourceSpec, configs ...MiddlewareConfigFunc) error {
 	if _, ok := r.resources[url]; ok {
 		return fmt.Errorf("resource already registered to url pattern `%s`", url)
 	}
@@ -92,7 +92,7 @@ func (r *router) Register(url string, spec ResourceSpec, configs ...MiddlewareCo
 	return nil
 }
 
-func (r *router) decorateResource(spec ResourceSpec, configs ...MiddlewareConfig) (Resource, error) {
+func (r *router) decorateResource(spec ResourceSpec, configs ...MiddlewareConfigFunc) (Resource, error) {
 	hm := handlerMap{
 		MethodGet:     spec.Get,
 		MethodOptions: spec.Options,
@@ -118,7 +118,7 @@ func (r *router) decorateResource(spec ResourceSpec, configs ...MiddlewareConfig
 }
 
 // MustRegister calls Register and panics on error.
-func (r *router) MustRegister(url string, spec ResourceSpec, configs ...MiddlewareConfig) {
+func (r *router) MustRegister(url string, spec ResourceSpec, configs ...MiddlewareConfigFunc) {
 	if err := r.Register(url, spec, configs...); err != nil {
 		panic(err.Error())
 	}

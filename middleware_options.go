@@ -1,14 +1,14 @@
 package chevron
 
 type (
-	// MiddlewareConfig is a function that decorates a map from HTTP methods
+	// MiddlewareConfigFunc is a function that decorates a map from HTTP methods
 	// to handlers.
-	MiddlewareConfig func(handlerMap) error
+	MiddlewareConfigFunc func(handlerMap) error
 )
 
 // WithMiddleware applies the given middleware to all HTTP methods in the
 // handler map.
-func WithMiddleware(middleware Middleware) MiddlewareConfig {
+func WithMiddleware(middleware Middleware) MiddlewareConfigFunc {
 	return func(hm handlerMap) error {
 		return applyMiddleware(middleware, hm, allMethods)
 	}
@@ -16,7 +16,7 @@ func WithMiddleware(middleware Middleware) MiddlewareConfig {
 
 // WithMiddlewareFor applies the given middleware to the provided HTTP
 // methods in the handler map.
-func WithMiddlewareFor(middleware Middleware, methods ...Method) MiddlewareConfig {
+func WithMiddlewareFor(middleware Middleware, methods ...Method) MiddlewareConfigFunc {
 	return func(hm handlerMap) error {
 		return applyMiddleware(middleware, hm, methods)
 	}
