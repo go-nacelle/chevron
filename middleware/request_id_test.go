@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/aphistic/sweet"
@@ -60,4 +61,33 @@ func (s *RequestIDSuite) TestNewRequestIDSuppliedByClient(t sweet.T) {
 	Expect(resp.StatusCode()).To(Equal(http.StatusNoContent))
 	Expect(resp.Header("X-Request-ID")).To(Equal(ctxVal))
 	Expect(resp.Header("X-Request-ID")).To(Equal("1234"))
+}
+
+func (s *RequestIDSuite) TestRequestIDFailure(t sweet.T) {
+	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
+		return response.Empty(http.StatusNoContent)
+	}
+
+	expectedResp := response.JSON(map[string]string{
+		"message": "entropy whoopsie",
+	})
+
+	generator := func() (string, error) {
+		return "", fmt.Errorf("utoh")
+	}
+
+	errorFactory := func(err error) response.Response {
+		return expectedResp
+	}
+
+	wrapped, err := NewRequestID(
+		WithRequestIDGenerator(generator),
+		WithRequestIDErrorFactory(errorFactory),
+	).Convert(bare)
+
+	Expect(err).To(BeNil())
+
+	r, _ := http.NewRequest("GET", "/", nil)
+	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
+	Expect(resp).To(Equal(expectedResp))
 }

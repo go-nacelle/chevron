@@ -11,7 +11,15 @@ import (
 	"github.com/efritz/chevron"
 )
 
-type tokenRequestID string
+type (
+	RequestIDMiddleware struct {
+		requestIDGenerator RequestIDGenerator
+		errorFactory       ErrorFactory
+	}
+
+	RequestIDGenerator func() (string, error)
+	tokenRequestID     string
+)
 
 // TokenRequestID is the unique token to which the current request's unique
 // ID is written to the request context.
@@ -32,39 +40,54 @@ func GetRequestID(ctx context.Context) string {
 // instead. The request ID is added to the context and to logger attributes,
 // and the X-Request-ID header is added to the wrapped handler's resulting
 // response.
-func NewRequestID() chevron.Middleware {
-	return chevron.MiddlewareFunc(func(f chevron.Handler) (chevron.Handler, error) {
-		handler := func(ctx context.Context, req *http.Request, logger nacelle.Logger) response.Response {
-			requestID, err := getRequestIDFromRequest(req)
-			if err != nil {
-				// TODO
-				return response.Empty(http.StatusInternalServerError)
-			}
+func NewRequestID(configs ...RequestIDConfigFunc) *RequestIDMiddleware {
+	m := &RequestIDMiddleware{
+		requestIDGenerator: defaultRequestIDGenerator,
+		errorFactory:       defaultErrorFactory,
+	}
 
-			wrappedCtx := context.WithValue(
-				ctx,
-				TokenRequestID,
-				requestID,
-			)
+	for _, f := range configs {
+		f(m)
+	}
 
-			wrappedLogger := logger.WithFields(nacelle.LogFields{
-				"request_id": requestID,
-			})
-
-			resp := f(wrappedCtx, req, wrappedLogger)
-			resp.SetHeader("X-Request-ID", requestID)
-			return resp
-		}
-
-		return handler, nil
-	})
+	return m
 }
 
-func getRequestIDFromRequest(req *http.Request) (string, error) {
+func (m *RequestIDMiddleware) Convert(f chevron.Handler) (chevron.Handler, error) {
+	handler := func(ctx context.Context, req *http.Request, logger nacelle.Logger) response.Response {
+		requestID, err := m.getIDFromRequest(req)
+		if err != nil {
+			logger.Error("Failed to generate request ID (%s)", err.Error())
+			return m.errorFactory(err)
+		}
+
+		wrappedCtx := context.WithValue(
+			ctx,
+			TokenRequestID,
+			requestID,
+		)
+
+		wrappedLogger := logger.WithFields(nacelle.LogFields{
+			"request_id": requestID,
+		})
+
+		resp := f(wrappedCtx, req, wrappedLogger)
+		resp.SetHeader("X-Request-ID", requestID)
+		return resp
+	}
+
+	return handler, nil
+}
+
+func (m *RequestIDMiddleware) getIDFromRequest(req *http.Request) (string, error) {
 	if requestID := req.Header.Get("X-Request-ID"); requestID != "" {
 		return requestID, nil
 	}
 
+	return m.requestIDGenerator()
+}
+
+func defaultRequestIDGenerator() (string, error) {
 	raw, err := uuid.NewV4()
 	if err != nil {
 		return "", err

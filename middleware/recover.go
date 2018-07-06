@@ -3,31 +3,60 @@ package middleware
 import (
 	"context"
 	"net/http"
-
-	"github.com/efritz/nacelle"
-	"github.com/efritz/response"
+	"runtime"
 
 	"github.com/efritz/chevron"
+	"github.com/efritz/nacelle"
+	"github.com/efritz/response"
+)
+
+type (
+	RecoverMiddleware struct {
+		errorFactory     PanicErrorFactory
+		stackBufferSize  int
+		logAllGoroutines bool
+	}
 )
 
 // NewRecovery creates middleware that captures panics from the handler
 // and converts them to 500-level responses. The value of the panic is
 // logged at error level.
-func NewRecovery() chevron.Middleware {
-	return chevron.MiddlewareFunc(func(f chevron.Handler) (chevron.Handler, error) {
-		handler := func(ctx context.Context, req *http.Request, logger nacelle.Logger) (resp response.Response) {
-			defer func() {
-				if err := recover(); err != nil {
-					// TODO - should add stack in logs
-					logger.Error("Request handler panicked (%s)", err)
-					resp = response.Empty(http.StatusInternalServerError)
-				}
-			}()
+func NewRecovery(configs ...RecoverConfigFunc) chevron.Middleware {
+	m := &RecoverMiddleware{
+		errorFactory:     defaultPanicErrorFactory,
+		stackBufferSize:  4 << 10,
+		logAllGoroutines: false,
+	}
 
-			resp = f(ctx, req, logger)
-			return
-		}
+	for _, f := range configs {
+		f(m)
+	}
 
-		return handler, nil
-	})
+	return m
+}
+
+func (m *RecoverMiddleware) Convert(f chevron.Handler) (chevron.Handler, error) {
+	handler := func(ctx context.Context, req *http.Request, logger nacelle.Logger) (resp response.Response) {
+		defer func() {
+			if err := recover(); err != nil {
+				var (
+					stack  = make([]byte, m.stackBufferSize)
+					length = runtime.Stack(stack, m.logAllGoroutines)
+				)
+
+				logger.Error(
+					"Request handler panicked (%s):\n%s",
+					err,
+					stack[:length],
+				)
+
+				resp = m.errorFactory(err)
+			}
+		}()
+
+		resp = f(ctx, req, logger)
+		return
+	}
+
+	return handler, nil
 }

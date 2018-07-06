@@ -14,6 +14,9 @@ func TestMain(m *testing.M) {
 	sweet.Run(m, func(s *sweet.S) {
 		s.RegisterPlugin(junit.NewPlugin())
 
+		s.AddSuite(&CacheSuite{})
+		s.AddSuite(&GzipSuite{})
+		s.AddSuite(&LoggingSuite{})
 		s.AddSuite(&RecoverSuite{})
 		s.AddSuite(&RequestIDSuite{})
 	})
