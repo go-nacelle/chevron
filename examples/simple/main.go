@@ -25,7 +25,7 @@ func (tr *TestResource) Get(ctx context.Context, req *http.Request, logger nacel
 func setupRoutes(config nacelle.Config, router chevron.Router) error {
 	router.AddMiddleware(middleware.NewLogging())
 	router.AddMiddleware(middleware.NewRequestID())
-	router.AddMiddleware(middleware.NewGzip(gzip.BestCompression))
+	router.AddMiddleware(middleware.NewGzip(middleware.WithGzipLevel(gzip.BestCompression)))
 
 	router.MustRegister("/", &TestResource{})
 
