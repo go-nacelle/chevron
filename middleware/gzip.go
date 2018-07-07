@@ -53,7 +53,6 @@ func (m *GzipMiddleware) Convert(f chevron.Handler) (chevron.Handler, error) {
 		resp.SetHeader("Content-Type", "application/octet-stream")
 
 		return resp.DecorateWriter(func(w io.Writer) io.Writer {
-			// TODO - need to close the inner one too?
 			gzipWriter, _ := gzip.NewWriterLevel(w, m.level)
 			return gzipWriter
 		})
