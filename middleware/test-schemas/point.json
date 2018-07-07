@@ -1,0 +1,14 @@
+{
+    "type": "object",
+    "properties": {
+        "x": {"type": "integer"},
+        "y": {"type": "integer"},
+        "z": {"type": "integer"}
+    },
+    "additionalProperties": false,
+    "required": [
+        "x",
+        "y",
+        "z"
+    ]
+}

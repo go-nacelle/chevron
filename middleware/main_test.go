@@ -19,5 +19,6 @@ func TestMain(m *testing.M) {
 		s.AddSuite(&LoggingSuite{})
 		s.AddSuite(&RecoverSuite{})
 		s.AddSuite(&RequestIDSuite{})
+		s.AddSuite(&SchemaSuite{})
 	})
 }

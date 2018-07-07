@@ -1,0 +1,13 @@
+type: object
+properties:
+  x:
+    type: integer
+  y:
+    type: integer
+  z:
+    type: integer
+additionalProperites: false
+required:
+  - 'x'
+  - 'y'
+  - 'z'
