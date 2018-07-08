@@ -45,7 +45,7 @@ type (
 func NewRouter(services nacelle.ServiceContainer, configs ...RouterConfigFunc) Router {
 	r := &router{
 		services:              services,
-		logger:                nacelle.NewNilLogger(),
+		logger:                services.GetLogger(),
 		mux:                   mux.NewRouter(),
 		resources:             map[string]struct{}{},
 		notFoundHandler:       defaultNotFoundHandler,
