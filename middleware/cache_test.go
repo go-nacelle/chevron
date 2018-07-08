@@ -38,7 +38,7 @@ func (s *CacheSuite) TestCached(t sweet.T) {
 		return serialize(resp)
 	}
 
-	wrapped, err := NewResponseCache(WithCacheInstance(cache)).Convert(bare)
+	wrapped, err := NewResponseCache(cache).Convert(bare)
 	Expect(err).To(BeNil())
 	Expect(called).To(BeFalse())
 
@@ -75,7 +75,7 @@ func (s *CacheSuite) TestCacheReadError(t sweet.T) {
 	}
 
 	wrapped, err := NewResponseCache(
-		WithCacheInstance(cache),
+		cache,
 		WithCacheErrorFactory(errorFactory),
 	).Convert(bare)
 
@@ -110,7 +110,7 @@ func (s *CacheSuite) TestCacheWriteError(t sweet.T) {
 	}
 
 	wrapped, err := NewResponseCache(
-		WithCacheInstance(cache),
+		cache,
 		WithCacheErrorFactory(errorFactory),
 	).Convert(bare)
 
@@ -145,7 +145,7 @@ func (s *CacheSuite) TestCacheReadCacheJunkData(t sweet.T) {
 	}
 
 	wrapped, err := NewResponseCache(
-		WithCacheInstance(cache),
+		cache,
 		WithCacheErrorFactory(errorFactory),
 	).Convert(bare)
 
@@ -169,7 +169,7 @@ func (s *CacheSuite) TestWritesToCache(t sweet.T) {
 	}
 
 	wrapped, err := NewResponseCache(
-		WithCacheInstance(cache),
+		cache,
 		WithCacheTags("foo", "bar", "baz"),
 	).Convert(bare)
 
@@ -209,7 +209,7 @@ func (s *CacheSuite) TestShouldNotCache(t sweet.T) {
 		return nil
 	}
 
-	wrapped, err := NewResponseCache(WithCacheInstance(cache)).Convert(bare)
+	wrapped, err := NewResponseCache(cache).Convert(bare)
 	Expect(err).To(BeNil())
 	Expect(called).To(BeFalse())
 
@@ -227,7 +227,7 @@ func (s *CacheSuite) TestNoCacheInstance(t sweet.T) {
 		return resp
 	}
 
-	wrapped, err := NewResponseCache().Convert(bare)
+	wrapped, err := NewResponseCache(nil).Convert(bare)
 	Expect(err).To(BeNil())
 
 	r, _ := http.NewRequest("GET", "/foo/bar", nil)

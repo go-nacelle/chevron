@@ -15,7 +15,7 @@ import (
 )
 
 type CacheMiddleware struct {
-	Cache        gache.Cache `service:"cache"`
+	cache        gache.Cache
 	tags         []string
 	errorFactory ErrorFactory
 }
@@ -23,8 +23,12 @@ type CacheMiddleware struct {
 // NewResponseCache creates middleware that stores the complete response
 // in a cache instance. The wrapped handler is not invoked if a response
 // payload for the given request is available in the cache.
-func NewResponseCache(configs ...CacheMiddlewareConfigFunc) chevron.Middleware {
+func NewResponseCache(
+	cache gache.Cache,
+	configs ...CacheMiddlewareConfigFunc,
+) chevron.Middleware {
 	m := &CacheMiddleware{
+		cache:        cache,
 		errorFactory: defaultErrorFactory,
 	}
 
@@ -40,7 +44,7 @@ func (m *CacheMiddleware) Convert(f chevron.Handler) (chevron.Handler, error) {
 		// If we don't have a cache instance or if this request can
 		// have side effects, do not attempt to touch the cache in
 		// either direction.
-		if m.Cache == nil || !shouldCache(req) {
+		if m.cache == nil || !shouldCache(req) {
 			return f(ctx, req, logger)
 		}
 
@@ -78,7 +82,7 @@ func (c *CacheMiddleware) generateCacheValue(
 ) (val string, err error) {
 	key := c.makeCacheKey(req)
 
-	if val, err = c.Cache.GetValue(key); val != "" || err != nil {
+	if val, err = c.cache.GetValue(key); val != "" || err != nil {
 		return
 	}
 
@@ -87,7 +91,7 @@ func (c *CacheMiddleware) generateCacheValue(
 		return
 	}
 
-	if err = c.Cache.SetValue(key, val, c.tags...); err != nil {
+	if err = c.cache.SetValue(key, val, c.tags...); err != nil {
 		err = fmt.Errorf("failed to insert response into cache (%s)", err.Error())
 	}
 
