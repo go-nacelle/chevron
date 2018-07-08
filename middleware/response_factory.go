@@ -7,6 +7,7 @@ import (
 )
 
 type (
+	ResponseFactory   func() response.Response
 	ErrorFactory      func(error) response.Response
 	PanicErrorFactory func(interface{}) response.Response
 )
