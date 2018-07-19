@@ -6,7 +6,7 @@ import (
 
 	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 
 	"github.com/efritz/chevron"
 )
@@ -88,7 +88,7 @@ func (m *RequestIDMiddleware) getIDFromRequest(req *http.Request) (string, error
 }
 
 func defaultRequestIDGenerator() (string, error) {
-	raw, err := uuid.NewV4()
+	raw, err := uuid.NewRandom()
 	if err != nil {
 		return "", err
 	}
