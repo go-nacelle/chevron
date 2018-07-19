@@ -11,18 +11,13 @@ import (
 func BootAndExit(name string, initializer RouteInitializer) {
 	boostrapper := nacelle.NewBootstrapper(
 		name,
-		defaultSetupConfigs,
-		setupProcessesFactory(initializer),
+		setupFactory(initializer),
 	)
 
 	boostrapper.BootAndExit()
 }
 
-func defaultSetupConfigs(config nacelle.Config) error {
-	return config.Register(basehttp.ConfigToken, &basehttp.Config{})
-}
-
-func setupProcessesFactory(initializer RouteInitializer) func(nacelle.ProcessContainer, nacelle.ServiceContainer) error {
+func setupFactory(initializer RouteInitializer) func(nacelle.ProcessContainer, nacelle.ServiceContainer) error {
 	return func(processes nacelle.ProcessContainer, services nacelle.ServiceContainer) error {
 		processes.RegisterProcess(basehttp.NewServer(NewInitializer(initializer)))
 		return nil
