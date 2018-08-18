@@ -42,17 +42,11 @@ func NewJWTAuthorizer(keyfunc jwt.Keyfunc, configs ...JWTAuthorizerConfigFunc) A
 }
 
 func (a *jwtAuthorizer) Authorize(ctx context.Context, req *http.Request) (AuthResult, interface{}, error) {
-	token, err := request.ParseFromRequestWithClaims(
+	token, err := request.ParseFromRequest(
 		req,
 		a.extractor,
-		a.claimsFactory(),
-		func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-
-			return a.keyfunc(token)
-		},
+		a.wrappedKeyFunc,
+		request.WithClaims(a.claimsFactory()),
 	)
 
 	if err != nil {
@@ -68,6 +62,14 @@ func (a *jwtAuthorizer) Authorize(ctx context.Context, req *http.Request) (AuthR
 	}
 
 	return AuthResultOK, token.Claims, nil
+}
+
+func (a *jwtAuthorizer) wrappedKeyFunc(token *jwt.Token) (interface{}, error) {
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+	}
+
+	return a.keyfunc(token)
 }
 
 func defaultJWTClaimsFactory() jwt.Claims {
