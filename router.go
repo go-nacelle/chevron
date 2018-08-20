@@ -25,6 +25,8 @@ type (
 
 		// MustRegister calls Register and panics on error.
 		MustRegister(url string, spec ResourceSpec, configs ...MiddlewareConfigFunc)
+
+		RegisterHandler(url string, handler http.Handler)
 	}
 
 	router struct {
@@ -88,7 +90,7 @@ func (r *router) Register(url string, spec ResourceSpec, configs ...MiddlewareCo
 		return err
 	}
 
-	r.mux.Handle(url, convert(r.baseCtx, resource.Handle, r.logger))
+	r.RegisterHandler(url, convert(r.baseCtx, resource.Handle, r.logger))
 	return nil
 }
 
@@ -122,6 +124,10 @@ func (r *router) MustRegister(url string, spec ResourceSpec, configs ...Middlewa
 	if err := r.Register(url, spec, configs...); err != nil {
 		panic(err.Error())
 	}
+}
+
+func (r *router) RegisterHandler(url string, handler http.Handler) {
+	r.mux.Handle(url, handler)
 }
 
 // ServeHTTP invokes the handler registered to the request URL and
