@@ -43,7 +43,10 @@ func GetJSONData(ctx context.Context) []byte {
 
 func NewSchemaMiddleware(path string, configs ...SchemaConfigFunc) chevron.Middleware {
 	m := &SchemaMiddleware{
-		path: path,
+		path:                       path,
+		errorFactory:               defaultErrorFactory,
+		badRequestFactory:          defaultBadRequestFactory,
+		unprocessableEntityFactory: defaultUnprocessableEntityFactory,
 	}
 
 	for _, f := range configs {
@@ -139,4 +142,12 @@ func loadYAMLSchema(path string) (gojsonschema.JSONLoader, error) {
 	}
 
 	return gojsonschema.NewBytesLoader(json), nil
+}
+
+func defaultBadRequestFactory() response.Response {
+	return response.Empty(http.StatusBadRequest)
+}
+
+func defaultUnprocessableEntityFactory([]gojsonschema.ResultError) response.Response {
+	return response.Empty(http.StatusUnprocessableEntity)
 }
