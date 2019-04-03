@@ -13,6 +13,7 @@ type (
 		Services    nacelle.ServiceContainer `service:"container"`
 		Logger      nacelle.Logger           `service:"logger"`
 		initializer RouteInitializer
+		configs     []RouterConfigFunc
 	}
 
 	// RouteInitializer initializes a Router instance.
@@ -32,17 +33,20 @@ func (f RouteInitializerFunc) Init(config nacelle.Config, router Router) error {
 }
 
 // NewInitializer creates a new ServerInitializer.
-func NewInitializer(initializer RouteInitializer) basehttp.ServerInitializer {
+func NewInitializer(initializer RouteInitializer, configs ...RouterConfigFunc) basehttp.ServerInitializer {
 	return &ServerInitializer{
 		initializer: initializer,
+		configs:     configs,
 	}
 }
 
 // Init creates a router which becomes the server's handler and calls the
 // attached route initializer.
 func (i *ServerInitializer) Init(config nacelle.Config, server *http.Server) error {
+	configs := append([]RouterConfigFunc{WithLogger(i.Logger)}, i.configs...)
+
 	// TODO - control additional configs with env vars
-	router := NewRouter(i.Services, WithLogger(i.Logger))
+	router := NewRouter(i.Services, configs...)
 	server.Handler = router
 	return i.initializer.Init(config, router)
 }
