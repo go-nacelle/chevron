@@ -8,8 +8,8 @@ import (
 
 	"github.com/aphistic/sweet"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
+	"github.com/go-nacelle/nacelle"
 	. "github.com/onsi/gomega"
 )
 

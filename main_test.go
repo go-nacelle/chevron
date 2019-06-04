@@ -7,8 +7,8 @@ import (
 
 	"github.com/aphistic/sweet"
 	"github.com/aphistic/sweet-junit"
-	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
+	"github.com/go-nacelle/nacelle"
 	. "github.com/onsi/gomega"
 )
 

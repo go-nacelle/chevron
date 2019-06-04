@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/efritz/gache"
-	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
+	"github.com/go-nacelle/nacelle"
 
-	"github.com/efritz/chevron"
+	"github.com/go-nacelle/chevron"
 )
 
 type CacheMiddleware struct {

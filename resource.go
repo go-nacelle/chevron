@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
+	"github.com/go-nacelle/nacelle"
 )
 
 type (

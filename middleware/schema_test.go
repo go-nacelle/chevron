@@ -11,8 +11,8 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 
 	"github.com/aphistic/sweet"
-	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
+	"github.com/go-nacelle/nacelle"
 	. "github.com/onsi/gomega"
 )
 
@@ -167,7 +167,7 @@ func (s *SchemaSuite) TestBadSchema(t sweet.T) {
 // Point to correct schema path
 
 func (s *SchemaSuite) SetUpSuite() {
-	TestSchemaPath = filepath.Join(gopath(), "src", "github.com/efritz/chevron/middleware", "test-schemas")
+	TestSchemaPath = filepath.Join(gopath(), "src", "github.com/go-nacelle/chevron/middleware", "test-schemas")
 }
 
 func gopath() string {

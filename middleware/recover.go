@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"runtime"
 
-	"github.com/efritz/chevron"
-	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
+	"github.com/go-nacelle/chevron"
+	"github.com/go-nacelle/nacelle"
 )
 
 type (

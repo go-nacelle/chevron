@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/aphistic/sweet"
-	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
+	"github.com/go-nacelle/nacelle"
 	. "github.com/onsi/gomega"
 )
 

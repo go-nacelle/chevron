@@ -1,6 +1,6 @@
 package middleware
 
-//go:generate go-mockgen github.com/efritz/nacelle -i Logger -d mocks
+//go:generate go-mockgen github.com/go-nacelle/nacelle -i Logger -d mocks
 
 import (
 	"context"
@@ -10,11 +10,11 @@ import (
 
 	"github.com/aphistic/sweet"
 	"github.com/efritz/glock"
-	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
+	"github.com/go-nacelle/nacelle"
 	. "github.com/onsi/gomega"
 
-	"github.com/efritz/chevron/middleware/mocks"
+	"github.com/go-nacelle/chevron/middleware/mocks"
 )
 
 type LoggingSuite struct{}

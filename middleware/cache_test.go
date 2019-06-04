@@ -10,11 +10,11 @@ import (
 	"net/http"
 
 	"github.com/aphistic/sweet"
-	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
+	"github.com/go-nacelle/nacelle"
 	. "github.com/onsi/gomega"
 
-	"github.com/efritz/chevron/middleware/mocks"
+	"github.com/go-nacelle/chevron/middleware/mocks"
 )
 
 type CacheSuite struct{}

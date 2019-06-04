@@ -9,12 +9,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
 	"github.com/ghodss/yaml"
+	"github.com/go-nacelle/nacelle"
 	"github.com/xeipuuv/gojsonschema"
 
-	"github.com/efritz/chevron"
+	"github.com/go-nacelle/chevron"
 )
 
 type (

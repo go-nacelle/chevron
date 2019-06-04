@@ -3,8 +3,8 @@ package chevron
 import (
 	"net/http"
 
-	"github.com/efritz/nacelle"
-	basehttp "github.com/efritz/nacelle/base/http"
+	"github.com/go-nacelle/nacelle"
+	basehttp "github.com/go-nacelle/nacelle/base/http"
 )
 
 type (

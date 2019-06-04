@@ -1,7 +1,7 @@
 package chevron
 
 import (
-	"github.com/efritz/nacelle"
+	"github.com/go-nacelle/nacelle"
 )
 
 // RouterConfigFunc is a function used to initialize a new router.

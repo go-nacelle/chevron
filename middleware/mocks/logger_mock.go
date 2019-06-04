@@ -1,12 +1,12 @@
 // DO NOT EDIT
 // Code generated automatically by github.com/efritz/go-mockgen
-// $ go-mockgen github.com/efritz/nacelle -i Logger -d mocks
+// $ go-mockgen github.com/go-nacelle/nacelle -i Logger -d mocks
 
 package mocks
 
 import (
-	nacelle "github.com/efritz/nacelle"
-	logging "github.com/efritz/nacelle/logging"
+	nacelle "github.com/go-nacelle/nacelle"
+	logging "github.com/go-nacelle/nacelle/logging"
 	sync "sync"
 )
 

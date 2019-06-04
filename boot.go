@@ -1,8 +1,8 @@
 package chevron
 
 import (
-	"github.com/efritz/nacelle"
-	basehttp "github.com/efritz/nacelle/base/http"
+	"github.com/go-nacelle/nacelle"
+	basehttp "github.com/go-nacelle/nacelle/base/http"
 )
 
 // BootAndExit creates a nacelle Bootstrapper with the given name and

@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"github.com/aphistic/sweet"
-	"github.com/efritz/chevron/middleware/mocks"
-	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
+	"github.com/go-nacelle/chevron/middleware/mocks"
+	"github.com/go-nacelle/nacelle"
 	. "github.com/onsi/gomega"
 )
 
@@ -53,7 +53,7 @@ func (s *RecoverSuite) TestWithRecover(t sweet.T) {
 
 	// Note: line number may change if code is added above of this test
 	Expect(message).To(Equal("runtime error: invalid memory address or nil pointer dereference"))
-	Expect(stacktrace).To(ContainSubstring("github.com/efritz/chevron/middleware/recover_test.go:34"))
+	Expect(stacktrace).To(ContainSubstring("github.com/go-nacelle/chevron/middleware/recover_test.go:34"))
 }
 
 func (s *RecoverSuite) TestWithRecoverErrorFactory(t sweet.T) {

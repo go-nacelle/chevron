@@ -1,18 +1,18 @@
 <p align="center">
-    <img width="200" src="https://github.com/efritz/chevron/blob/master/images/chevron.png" alt="Chevron logo">
+    <img width="200" src="https://github.com/go-nacelle/chevron/blob/master/images/chevron.png" alt="Chevron logo">
 </p>
 
 <h2 align="center">Chevron</h2>
 
 <p align="center">
-    <a href="https://godoc.org/github.com/efritz/chevron"><img src="https://godoc.org/github.com/efritz/chevron?status.svg" alt="GoDoc"></a>
+    <a href="https://godoc.org/github.com/go-nacelle/chevron"><img src="https://godoc.org/github.com/go-nacelle/chevron?status.svg" alt="GoDoc"></a>
     <a href="http://travis-ci.org/efritz/chevron"><img src="https://secure.travis-ci.org/efritz/chevron.png" alt="Build Status"></a>
     <a href="https://codeclimate.com/github/efritz/chevron/maintainability"><img src="https://api.codeclimate.com/v1/badges/3be41936bc1b92a617b8/maintainability" alt="Maintainability"></a>
     <a href="https://codeclimate.com/github/efritz/chevron/test_coverage"><img src="https://api.codeclimate.com/v1/badges/3be41936bc1b92a617b8/test_coverage" alt="Test Coverage"></a>
 </p>
 
 Chevron is a REST API framework built on top of the concepts brought to you by
-[nacelle](https://github.com/efritz/nacelle). For example usage, see the examples
+[nacelle](https://github.com/go-nacelle/nacelle). For example usage, see the examples
 directory.
 
 ---
