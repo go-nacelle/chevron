@@ -3,12 +3,12 @@ package chevron
 import (
 	"net/http"
 
+	"github.com/go-nacelle/httpbase"
 	"github.com/go-nacelle/nacelle"
-	basehttp "github.com/go-nacelle/nacelle/base/http"
 )
 
 type (
-	// ServerInitializer implements basehttp.ServerInitializer.
+	// ServerInitializer implements httpbase.ServerInitializer.
 	ServerInitializer struct {
 		Services    nacelle.ServiceContainer `service:"container"`
 		Logger      nacelle.Logger           `service:"logger"`
@@ -33,7 +33,7 @@ func (f RouteInitializerFunc) Init(config nacelle.Config, router Router) error {
 }
 
 // NewInitializer creates a new ServerInitializer.
-func NewInitializer(initializer RouteInitializer, configs ...RouterConfigFunc) basehttp.ServerInitializer {
+func NewInitializer(initializer RouteInitializer, configs ...RouterConfigFunc) httpbase.ServerInitializer {
 	return &ServerInitializer{
 		initializer: initializer,
 		configs:     configs,
@@ -46,7 +46,7 @@ func (i *ServerInitializer) Init(config nacelle.Config, server *http.Server) err
 	configs := append([]RouterConfigFunc{WithLogger(i.Logger)}, i.configs...)
 
 	// TODO - control additional configs with env vars
-	router := NewRouter(i.Services, configs...)
+	router := NewRouter(i.Services, i.Logger, configs...)
 	server.Handler = router
 	return i.initializer.Init(config, router)
 }

@@ -15,8 +15,9 @@ type RouterSuite struct{}
 
 func (s *RouterSuite) TestRegisterAddsToMux(t sweet.T) {
 	var (
-		container, _ = nacelle.NewServiceContainer()
-		router       = NewRouter(container)
+		container = nacelle.NewServiceContainer()
+		logger    = nacelle.NewNilLogger()
+		router    = NewRouter(container, logger)
 	)
 
 	// Register resource
@@ -37,8 +38,9 @@ func (s *RouterSuite) TestRegisterAddsToMux(t sweet.T) {
 
 func (s *RouterSuite) TestRegisterInjectsServices(t sweet.T) {
 	var (
-		container, _ = nacelle.NewServiceContainer()
-		router       = NewRouter(container)
+		container = nacelle.NewServiceContainer()
+		logger    = nacelle.NewNilLogger()
+		router    = NewRouter(container, logger)
 	)
 
 	for _, val := range []string{"a", "b", "c"} {
@@ -54,8 +56,9 @@ func (s *RouterSuite) TestRegisterInjectsServices(t sweet.T) {
 
 func (s *RouterSuite) TestRegisterDuplicateURL(t sweet.T) {
 	var (
-		container, _ = nacelle.NewServiceContainer()
-		router       = NewRouter(container)
+		container = nacelle.NewServiceContainer()
+		logger    = nacelle.NewNilLogger()
+		router    = NewRouter(container, logger)
 	)
 
 	err1 := router.Register("/users", &EmptySpec{})
@@ -68,9 +71,10 @@ func (s *RouterSuite) TestRegisterDuplicateURL(t sweet.T) {
 
 func (s *RouterSuite) TestRegisterWithMiddleware(t sweet.T) {
 	var (
-		container, _ = nacelle.NewServiceContainer()
-		router       = NewRouter(container)
-		calls        = []string{}
+		container = nacelle.NewServiceContainer()
+		logger    = nacelle.NewNilLogger()
+		router    = NewRouter(container, logger)
+		calls     = []string{}
 	)
 
 	middlewareFactory := func(name string) Middleware {

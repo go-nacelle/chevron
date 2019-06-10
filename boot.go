@@ -1,8 +1,8 @@
 package chevron
 
 import (
+	"github.com/go-nacelle/httpbase"
 	"github.com/go-nacelle/nacelle"
-	basehttp "github.com/go-nacelle/nacelle/base/http"
 )
 
 // BootAndExit creates a nacelle Bootstrapper with the given name and
@@ -19,7 +19,7 @@ func BootAndExit(name string, initializer RouteInitializer) {
 
 func setupFactory(initializer RouteInitializer) func(nacelle.ProcessContainer, nacelle.ServiceContainer) error {
 	return func(processes nacelle.ProcessContainer, services nacelle.ServiceContainer) error {
-		processes.RegisterProcess(basehttp.NewServer(NewInitializer(initializer)))
+		processes.RegisterProcess(httpbase.NewServer(NewInitializer(initializer)))
 		return nil
 	}
 }

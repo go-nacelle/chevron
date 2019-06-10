@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/efritz/nacelle"
 	"github.com/efritz/response"
+	"github.com/go-nacelle/nacelle"
 	"github.com/gorilla/mux"
 )
 
@@ -44,10 +44,10 @@ type (
 )
 
 // NewRouter creates a new router.
-func NewRouter(services nacelle.ServiceContainer, configs ...RouterConfigFunc) Router {
+func NewRouter(services nacelle.ServiceContainer, logger nacelle.Logger, configs ...RouterConfigFunc) Router {
 	r := &router{
 		services:              services,
-		logger:                services.GetLogger(),
+		logger:                logger,
 		mux:                   mux.NewRouter(),
 		resources:             map[string]struct{}{},
 		notFoundHandler:       defaultNotFoundHandler,
