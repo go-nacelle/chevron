@@ -10,7 +10,7 @@ import (
 type (
 	// ServerInitializer implements httpbase.ServerInitializer.
 	ServerInitializer struct {
-		Services    nacelle.ServiceContainer `service:"container"`
+		Services    nacelle.ServiceContainer `service:"services"`
 		Logger      nacelle.Logger           `service:"logger"`
 		initializer RouteInitializer
 		configs     []RouterConfigFunc
