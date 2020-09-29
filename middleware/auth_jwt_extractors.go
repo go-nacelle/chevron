@@ -7,16 +7,14 @@ import (
 	"github.com/dgrijalva/jwt-go/request"
 )
 
-type (
-	jwtQueryExtractor struct {
-		name string
-	}
+type jwtQueryExtractor struct {
+	name string
+}
 
-	jwtHeaderExtractor struct {
-		name   string
-		scheme string
-	}
-)
+type jwtHeaderExtractor struct {
+	name   string
+	scheme string
+}
 
 func NewJWTQueryExtractor(name string) request.Extractor {
 	return &jwtQueryExtractor{name: name}

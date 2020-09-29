@@ -1,10 +1,8 @@
 package chevron
 
-type (
-	// MiddlewareConfigFunc is a function that decorates a map from HTTP methods
-	// to handlers.
-	MiddlewareConfigFunc func(handlerMap) error
-)
+// MiddlewareConfigFunc is a function that decorates a map from HTTP methods
+// to handlers.
+type MiddlewareConfigFunc func(handlerMap) error
 
 // WithMiddleware applies the given middleware to all HTTP methods in the
 // handler map.

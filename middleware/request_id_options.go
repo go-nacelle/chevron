@@ -1,8 +1,6 @@
 package middleware
 
-type (
-	RequestIDConfigFunc func(m *RequestIDMiddleware)
-)
+type RequestIDConfigFunc func(m *RequestIDMiddleware)
 
 func WithRequestIDErrorFactory(factory ErrorFactory) RequestIDConfigFunc {
 	return func(m *RequestIDMiddleware) { m.errorFactory = factory }

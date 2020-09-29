@@ -4,16 +4,14 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"testing"
 	"time"
 
-	"github.com/aphistic/sweet"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/efritz/response"
 	"github.com/go-nacelle/nacelle"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
-
-type JWTAuthSuite struct{}
 
 type CustomClaims struct {
 	jwt.StandardClaims
@@ -27,7 +25,7 @@ var (
 	oneMinuteAgo     = now.Add(-time.Minute).Unix()
 )
 
-func (s *JWTAuthSuite) TestAuthorize(t sweet.T) {
+func TestJWTAuthAuthorize(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		return response.JSON(GetJWTClaims(ctx))
 	}
@@ -38,7 +36,7 @@ func (s *JWTAuthSuite) TestAuthorize(t sweet.T) {
 		}),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	claims := CustomClaims{
 		StandardClaims: jwt.StandardClaims{
@@ -55,17 +53,19 @@ func (s *JWTAuthSuite) TestAuthorize(t sweet.T) {
 
 	r, _ := http.NewRequest("GET", url, nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(resp.StatusCode()).To(Equal(http.StatusOK))
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
 
 	_, body, _ := response.Serialize(resp)
-	Expect(body).To(MatchJSON(fmt.Sprintf(`{
+
+	expected := fmt.Sprintf(`{
 		"iss": "test",
 		"foo": "bar",
 		"exp": %d
-	}`, inOneMinute)))
+	}`, inOneMinute)
+	assert.JSONEq(t, expected, string(body))
 }
 
-func (s *JWTAuthSuite) TestAuthorizeHeader(t sweet.T) {
+func TestJWTAuthAuthorizeHeader(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		return response.JSON(GetJWTClaims(ctx))
 	}
@@ -79,7 +79,7 @@ func (s *JWTAuthSuite) TestAuthorizeHeader(t sweet.T) {
 		),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	claims := CustomClaims{
 		StandardClaims: jwt.StandardClaims{
@@ -92,17 +92,19 @@ func (s *JWTAuthSuite) TestAuthorizeHeader(t sweet.T) {
 	r, _ := http.NewRequest("GET", "/test-auth", nil)
 	r.Header.Add("Authorization", fmt.Sprintf("BEARER %s", makeJWTToken(claims)))
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(resp.StatusCode()).To(Equal(http.StatusOK))
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
 
 	_, body, _ := response.Serialize(resp)
-	Expect(body).To(MatchJSON(fmt.Sprintf(`{
+
+	expected := fmt.Sprintf(`{
 		"iss": "test",
 		"foo": "bar",
 		"exp": %d
-	}`, inOneMinute)))
+	}`, inOneMinute)
+	assert.JSONEq(t, expected, string(body))
 }
 
-func (s *JWTAuthSuite) TestExpiredToken(t sweet.T) {
+func TestJWTAuthExpiredToken(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		return response.JSON(GetJWTClaims(ctx))
 	}
@@ -118,7 +120,7 @@ func (s *JWTAuthSuite) TestExpiredToken(t sweet.T) {
 		}),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	claims := CustomClaims{
 		StandardClaims: jwt.StandardClaims{
@@ -135,13 +137,13 @@ func (s *JWTAuthSuite) TestExpiredToken(t sweet.T) {
 
 	r, _ := http.NewRequest("GET", url, nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(resp.StatusCode()).To(Equal(http.StatusUnauthorized))
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode())
 
 	_, body, _ := response.Serialize(resp)
-	Expect(string(body)).To(Equal("Token is expired"))
+	assert.Equal(t, "Token is expired", string(body))
 }
 
-func (s *JWTAuthSuite) TestMalformedToken(t sweet.T) {
+func TestJWTAuthMalformedToken(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		return response.JSON(GetJWTClaims(ctx))
 	}
@@ -157,17 +159,17 @@ func (s *JWTAuthSuite) TestMalformedToken(t sweet.T) {
 		}),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/test-auth?jwt=bad_jwt", nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(resp.StatusCode()).To(Equal(http.StatusUnauthorized))
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode())
 
 	_, body, _ := response.Serialize(resp)
-	Expect(string(body)).To(Equal("token contains an invalid number of segments"))
+	assert.Equal(t, "token contains an invalid number of segments", string(body))
 }
 
-func (s *JWTAuthSuite) TestNoToken(t sweet.T) {
+func TestJWTAuthNoToken(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		return response.JSON(GetJWTClaims(ctx))
 	}
@@ -183,17 +185,17 @@ func (s *JWTAuthSuite) TestNoToken(t sweet.T) {
 		}),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/test-auth", nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(resp.StatusCode()).To(Equal(http.StatusUnauthorized))
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode())
 
 	_, body, _ := response.Serialize(resp)
-	Expect(string(body)).To(Equal("no token present in request"))
+	assert.Equal(t, "no token present in request", string(body))
 }
 
-func (s *JWTAuthSuite) TestMismatchedSecret(t sweet.T) {
+func TestJWTAuthMismatchedSecret(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		return response.JSON(GetJWTClaims(ctx))
 	}
@@ -207,7 +209,7 @@ func (s *JWTAuthSuite) TestMismatchedSecret(t sweet.T) {
 		}),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	claims := CustomClaims{
 		StandardClaims: jwt.StandardClaims{
@@ -224,10 +226,10 @@ func (s *JWTAuthSuite) TestMismatchedSecret(t sweet.T) {
 
 	r, _ := http.NewRequest("GET", url, nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(resp.StatusCode()).To(Equal(http.StatusUnauthorized))
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode())
 
 	_, body, _ := response.Serialize(resp)
-	Expect(string(body)).To(Equal("signature is invalid"))
+	assert.Equal(t, "signature is invalid", string(body))
 }
 
 //

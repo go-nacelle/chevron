@@ -10,23 +10,21 @@ import (
 	"github.com/go-nacelle/chevron"
 )
 
-type (
-	AuthMiddleware struct {
-		authorizer                  Authorizer
-		errorFactory                ErrorFactory
-		forbiddenResponseFactory    ResponseFactory
-		unauthorizedResponseFactory ErrorFactory
-	}
+type AuthMiddleware struct {
+	authorizer                  Authorizer
+	errorFactory                ErrorFactory
+	forbiddenResponseFactory    ResponseFactory
+	unauthorizedResponseFactory ErrorFactory
+}
 
-	Authorizer interface {
-		Authorize(context.Context, *http.Request) (AuthResult, interface{}, error)
-	}
+type Authorizer interface {
+	Authorize(context.Context, *http.Request) (AuthResult, interface{}, error)
+}
 
-	AuthResult     int
-	AuthorizerFunc func(context.Context, *http.Request) (AuthResult, interface{}, error)
+type AuthResult int
+type AuthorizerFunc func(context.Context, *http.Request) (AuthResult, interface{}, error)
 
-	tokenAuthPayload string
-)
+type tokenAuthPayload string
 
 var TokenAuthPayload = tokenAuthPayload("chevron.middleware.auth")
 

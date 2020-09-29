@@ -9,15 +9,13 @@ import (
 	"github.com/dgrijalva/jwt-go/request"
 )
 
-type (
-	jwtAuthorizer struct {
-		keyfunc       jwt.Keyfunc
-		extractor     request.Extractor
-		claimsFactory JWTClaimsFactory
-	}
+type jwtAuthorizer struct {
+	keyfunc       jwt.Keyfunc
+	extractor     request.Extractor
+	claimsFactory JWTClaimsFactory
+}
 
-	JWTClaimsFactory func() jwt.Claims
-)
+type JWTClaimsFactory func() jwt.Claims
 
 func GetJWTClaims(ctx context.Context) jwt.Claims {
 	if claims, ok := ctx.Value(TokenAuthPayload).(jwt.Claims); ok {

@@ -2,14 +2,12 @@ package chevron
 
 import (
 	"net/http"
+	"testing"
 
-	"github.com/aphistic/sweet"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
 
-type ResourceSuite struct{}
-
-func (s *ResourceSuite) TestHandle(t sweet.T) {
+func TestResourceHandle(t *testing.T) {
 	m := map[Method]int{
 		MethodGet:  http.StatusFound,
 		MethodPost: http.StatusMovedPermanently,
@@ -33,7 +31,7 @@ func (s *ResourceSuite) TestHandle(t sweet.T) {
 			expected = http.StatusMethodNotAllowed
 		}
 
-		Expect(r.Handle(nil, makeEmptyRequest(method), nil).StatusCode()).To(Equal(expected))
+		assert.Equal(t, expected, r.Handle(nil, makeEmptyRequest(method), nil).StatusCode())
 	}
 }
 

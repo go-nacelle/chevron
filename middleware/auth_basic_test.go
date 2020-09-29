@@ -4,38 +4,36 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"testing"
 
-	"github.com/aphistic/sweet"
 	"github.com/efritz/response"
 	"github.com/go-nacelle/nacelle"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
-
-type BasicAuthSuite struct{}
 
 var testBasicValidator = func(ctx context.Context, u, p string) (bool, error) {
 	return u == "admin" && p == "secret", nil
 }
 
-func (s *BasicAuthSuite) TestAuthorize(t sweet.T) {
+func TestBasicAuthAuthorize(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		return response.Respond([]byte(GetBasicAuthUsername(ctx)))
 	}
 
 	wrapped, err := NewAuthMiddleware(NewBasicAuthorizer(testBasicValidator)).Convert(bare)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/test-auth", nil)
 	r.SetBasicAuth("admin", "secret")
 
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(resp.StatusCode()).To(Equal(http.StatusOK))
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
 
 	_, body, _ := response.Serialize(resp)
-	Expect(string(body)).To(Equal("admin"))
+	assert.Equal(t, "admin", string(body))
 }
 
-func (s *BasicAuthSuite) TestAuthorizeBadAuth(t sweet.T) {
+func TestBasicAuthAuthorizeBadAuth(t *testing.T) {
 	called := false
 
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
@@ -50,20 +48,20 @@ func (s *BasicAuthSuite) TestAuthorizeBadAuth(t sweet.T) {
 		}),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/test-auth", nil)
 	r.SetBasicAuth("admin", "old-secret")
 
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(resp.StatusCode()).To(Equal(http.StatusForbidden))
+	assert.Equal(t, http.StatusForbidden, resp.StatusCode())
 
 	_, body, _ := response.Serialize(resp)
-	Expect(string(body)).To(Equal("403"))
-	Expect(called).To(BeFalse())
+	assert.Equal(t, "403", string(body))
+	assert.False(t, called)
 }
 
-func (s *BasicAuthSuite) TestAuthorizeMissingAuth(t sweet.T) {
+func TestBasicAuthAuthorizeMissingAuth(t *testing.T) {
 	called := false
 
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
@@ -78,20 +76,20 @@ func (s *BasicAuthSuite) TestAuthorizeMissingAuth(t sweet.T) {
 		}),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/test-auth", nil)
 
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(resp.StatusCode()).To(Equal(http.StatusUnauthorized))
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode())
 
 	_, body, _ := response.Serialize(resp)
-	Expect(string(body)).To(Equal("401"))
-	Expect(called).To(BeFalse())
+	assert.Equal(t, "401", string(body))
+	assert.False(t, called)
 }
 
-func (s *BasicAuthSuite) TestDefaultUnauthorizedResponseFactory(t sweet.T) {
+func TestBasicAuthDefaultUnauthorizedResponseFactory(t *testing.T) {
 	resp := NewBasicUnauthorizedResponseFactory("test")(fmt.Errorf("utoh"))
-	Expect(resp.StatusCode()).To(Equal(http.StatusUnauthorized))
-	Expect(resp.Header("WWW-Authenticate")).To(Equal(`Basic realm="test"`))
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode())
+	assert.Equal(t, `Basic realm="test"`, resp.Header("WWW-Authenticate"))
 }

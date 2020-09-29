@@ -2,39 +2,42 @@ package middleware
 
 import (
 	"context"
-	"go/build"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/xeipuuv/gojsonschema"
 
-	"github.com/aphistic/sweet"
 	"github.com/efritz/response"
 	"github.com/go-nacelle/nacelle"
-	. "github.com/onsi/gomega"
 )
-
-type SchemaSuite struct{}
 
 // Assigned at setup
 var TestSchemaPath string
 
-func (s *SchemaSuite) TestGetJSONData(t sweet.T) {
+func TestMain(t *testing.M) {
+	wd, _ := os.Getwd()
+	TestSchemaPath = filepath.Join(wd, "test-schemas")
+	os.Exit(t.Run())
+}
+
+func TestSchemaGetJSONData(t *testing.T) {
 	var (
 		val = []byte("[1, 2, 3]")
 		ctx = context.WithValue(context.Background(), TokenJSONData, val)
 	)
 
 	// Present
-	Expect(GetJSONData(ctx)).To(Equal(val))
+	assert.Equal(t, val, GetJSONData(ctx))
 
 	// Missing
-	Expect(GetJSONData(context.Background())).To(BeEmpty())
+	assert.Empty(t, GetJSONData(context.Background()))
 }
 
-func (s *SchemaSuite) TestValidateInput(t sweet.T) {
+func TestSchemaValidateInput(t *testing.T) {
 	var ctxVal []byte
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		ctxVal = GetJSONData(ctx)
@@ -42,7 +45,7 @@ func (s *SchemaSuite) TestValidateInput(t sweet.T) {
 	}
 
 	wrapped, err := NewSchemaMiddleware(TestSchemaPath + "/point.json").Convert(bare)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/", strings.NewReader(`{
 		"x": 1,
@@ -51,11 +54,11 @@ func (s *SchemaSuite) TestValidateInput(t sweet.T) {
 	}`))
 
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(ctxVal).To(MatchJSON(`{"x": 1, "y": 2, "z": 3}`))
-	Expect(resp.StatusCode()).To(Equal(http.StatusNoContent))
+	assert.JSONEq(t, `{"x": 1, "y": 2, "z": 3}`, string(ctxVal))
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode())
 }
 
-func (s *SchemaSuite) TestValidateInputYAMLSchema(t sweet.T) {
+func TestSchemaValidateInputYAMLSchema(t *testing.T) {
 	var ctxVal []byte
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		ctxVal = GetJSONData(ctx)
@@ -63,7 +66,7 @@ func (s *SchemaSuite) TestValidateInputYAMLSchema(t sweet.T) {
 	}
 
 	wrapped, err := NewSchemaMiddleware(TestSchemaPath + "/point.yaml").Convert(bare)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/", strings.NewReader(`{
 		"x": 1,
@@ -72,11 +75,11 @@ func (s *SchemaSuite) TestValidateInputYAMLSchema(t sweet.T) {
 	}`))
 
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(ctxVal).To(MatchJSON(`{"x": 1, "y": 2, "z": 3}`))
-	Expect(resp.StatusCode()).To(Equal(http.StatusNoContent))
+	assert.JSONEq(t, `{"x": 1, "y": 2, "z": 3}`, string(ctxVal))
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode())
 }
 
-func (s *SchemaSuite) TestBadRequest(t sweet.T) {
+func TestSchemaBadRequest(t *testing.T) {
 	var (
 		called       = false
 		expectedResp = response.JSON(map[string]string{
@@ -98,15 +101,15 @@ func (s *SchemaSuite) TestBadRequest(t sweet.T) {
 		WithSchemaBadRequestFactory(badRequestFactory),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/", strings.NewReader(`not even json`))
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(called).To(BeFalse())
-	Expect(resp).To(Equal(expectedResp))
+	assert.False(t, called)
+	assert.Equal(t, expectedResp, resp)
 }
 
-func (s *SchemaSuite) TestUnprocessableEntity(t sweet.T) {
+func TestSchemaUnprocessableEntity(t *testing.T) {
 	var (
 		called = false
 	)
@@ -132,7 +135,7 @@ func (s *SchemaSuite) TestUnprocessableEntity(t sweet.T) {
 		WithSchemaUnprocessableEntityFactory(unprocessableEntityFactory),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/", strings.NewReader(`{
 		"x": 1,
@@ -140,43 +143,27 @@ func (s *SchemaSuite) TestUnprocessableEntity(t sweet.T) {
 	}`))
 
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(called).To(BeFalse())
-	Expect(resp.StatusCode()).To(Equal(http.StatusUnprocessableEntity))
+	assert.False(t, called)
+	assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode())
 
 	_, body, err := response.Serialize(resp)
-	Expect(err).To(BeNil())
-	Expect(body).To(MatchJSON(`[
+	assert.Nil(t, err)
+
+	expected := `[
 		"z is required",
 		"Invalid type. Expected: integer, given: number"
-	]`))
+	]`
+	assert.JSONEq(t, expected, string(body))
 }
 
-func (s *SchemaSuite) TestMissingSchema(t sweet.T) {
+func TestSchemaMissingSchema(t *testing.T) {
 	_, err := NewSchemaMiddleware(TestSchemaPath + "/missing.json").Convert(nil)
-	Expect(err).NotTo(BeNil())
-	Expect(err.Error()).To(ContainSubstring("failed to load schema"))
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "failed to load schema")
 }
 
-func (s *SchemaSuite) TestBadSchema(t sweet.T) {
+func TestSchemaBadSchema(t *testing.T) {
 	_, err := NewSchemaMiddleware(TestSchemaPath + "/malformed.json").Convert(nil)
-	Expect(err).NotTo(BeNil())
-	Expect(err.Error()).To(ContainSubstring("invalid schema"))
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "invalid schema")
 }
-
-//
-// Point to correct schema path
-
-func (s *SchemaSuite) SetUpSuite() {
-	TestSchemaPath = filepath.Join(gopath(), "src", "github.com/go-nacelle/chevron/middleware", "test-schemas")
-}
-
-func gopath() string {
-	if gopath := os.Getenv("GOPATH"); gopath != "" {
-		return gopath
-	}
-
-	return build.Default.GOPATH
-}
-
-//
-//

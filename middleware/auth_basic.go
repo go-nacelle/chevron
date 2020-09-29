@@ -8,13 +8,11 @@ import (
 	"github.com/efritz/response"
 )
 
-type (
-	basicAuthorizer struct {
-		validator BasicAuthValidator
-	}
+type basicAuthorizer struct {
+	validator BasicAuthValidator
+}
 
-	BasicAuthValidator func(context.Context, string, string) (bool, error)
-)
+type BasicAuthValidator func(context.Context, string, string) (bool, error)
 
 func GetBasicAuthUsername(ctx context.Context) string {
 	if val, ok := ctx.Value(TokenAuthPayload).(string); ok {

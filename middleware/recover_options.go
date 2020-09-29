@@ -1,8 +1,6 @@
 package middleware
 
-type (
-	RecoverConfigFunc func(m *RecoverMiddleware)
-)
+type RecoverConfigFunc func(m *RecoverMiddleware)
 
 func WithRecoverErrorFactory(factory PanicErrorFactory) RecoverConfigFunc {
 	return func(m *RecoverMiddleware) { m.errorFactory = factory }

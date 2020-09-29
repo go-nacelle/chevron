@@ -10,13 +10,11 @@ import (
 	"github.com/go-nacelle/nacelle"
 )
 
-type (
-	RecoverMiddleware struct {
-		errorFactory     PanicErrorFactory
-		stackBufferSize  int
-		logAllGoroutines bool
-	}
-)
+type RecoverMiddleware struct {
+	errorFactory     PanicErrorFactory
+	stackBufferSize  int
+	logAllGoroutines bool
+}
 
 // NewRecovery creates middleware that captures panics from the handler
 // and converts them to 500-level responses. The value of the panic is

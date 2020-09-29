@@ -2,14 +2,12 @@ package chevron
 
 import (
 	"fmt"
+	"testing"
 
-	"github.com/aphistic/sweet"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
 
-type MiddlewareOptionsSuite struct{}
-
-func (s *MiddlewareOptionsSuite) TestWithMiddleware(t sweet.T) {
+func TestWithMiddleware(t *testing.T) {
 	var (
 		hm       = makeTestHandlerMap()
 		numCalls = 0
@@ -21,27 +19,27 @@ func (s *MiddlewareOptionsSuite) TestWithMiddleware(t sweet.T) {
 	})
 
 	// Apply the middleware config
-	Expect(WithMiddleware(middleware)(hm)).To(BeNil())
+	assert.Nil(t, WithMiddleware(middleware)(hm))
 
-	Expect(numCalls).To(Equal(6))
-	Expect(hm[MethodGet](nil, nil, nil).StatusCode()).To(Equal(106))
-	Expect(hm[MethodOptions](nil, nil, nil).StatusCode()).To(Equal(106))
-	Expect(hm[MethodPost](nil, nil, nil).StatusCode()).To(Equal(106))
-	Expect(hm[MethodPut](nil, nil, nil).StatusCode()).To(Equal(106))
-	Expect(hm[MethodPatch](nil, nil, nil).StatusCode()).To(Equal(106))
-	Expect(hm[MethodDelete](nil, nil, nil).StatusCode()).To(Equal(106))
+	assert.Equal(t, 6, numCalls)
+	assert.Equal(t, 106, hm[MethodGet](nil, nil, nil).StatusCode())
+	assert.Equal(t, 106, hm[MethodOptions](nil, nil, nil).StatusCode())
+	assert.Equal(t, 106, hm[MethodPost](nil, nil, nil).StatusCode())
+	assert.Equal(t, 106, hm[MethodPut](nil, nil, nil).StatusCode())
+	assert.Equal(t, 106, hm[MethodPatch](nil, nil, nil).StatusCode())
+	assert.Equal(t, 106, hm[MethodDelete](nil, nil, nil).StatusCode())
 }
 
-func (s *MiddlewareOptionsSuite) TestWithMiddlewareError(t sweet.T) {
+func TestWithMiddlewareError(t *testing.T) {
 	middleware := MiddlewareFunc(func(h Handler) (Handler, error) {
 		return nil, fmt.Errorf("utoh")
 	})
 
 	// Apply the middleware config
-	Expect(WithMiddleware(middleware)(makeTestHandlerMap())).To(MatchError("utoh"))
+	assert.EqualError(t, WithMiddleware(middleware)(makeTestHandlerMap()), "utoh")
 }
 
-func (s *MiddlewareOptionsSuite) TestWithMiddlewareFor(t sweet.T) {
+func TestWithMiddlewareFor(t *testing.T) {
 	var (
 		hm       = makeTestHandlerMap()
 		numCalls = 0
@@ -53,15 +51,15 @@ func (s *MiddlewareOptionsSuite) TestWithMiddlewareFor(t sweet.T) {
 	})
 
 	// Apply the middleware config
-	Expect(WithMiddlewareFor(middleware, MethodGet, MethodPatch)(hm)).To(BeNil())
+	assert.Nil(t, WithMiddlewareFor(middleware, MethodGet, MethodPatch)(hm))
 
-	Expect(numCalls).To(Equal(2))
-	Expect(hm[MethodGet](nil, nil, nil).StatusCode()).To(Equal(106))
-	Expect(hm[MethodOptions](nil, nil, nil).StatusCode()).To(Equal(101))
-	Expect(hm[MethodPost](nil, nil, nil).StatusCode()).To(Equal(102))
-	Expect(hm[MethodPut](nil, nil, nil).StatusCode()).To(Equal(103))
-	Expect(hm[MethodPatch](nil, nil, nil).StatusCode()).To(Equal(106))
-	Expect(hm[MethodDelete](nil, nil, nil).StatusCode()).To(Equal(105))
+	assert.Equal(t, 2, numCalls)
+	assert.Equal(t, 106, hm[MethodGet](nil, nil, nil).StatusCode())
+	assert.Equal(t, 101, hm[MethodOptions](nil, nil, nil).StatusCode())
+	assert.Equal(t, 102, hm[MethodPost](nil, nil, nil).StatusCode())
+	assert.Equal(t, 103, hm[MethodPut](nil, nil, nil).StatusCode())
+	assert.Equal(t, 106, hm[MethodPatch](nil, nil, nil).StatusCode())
+	assert.Equal(t, 105, hm[MethodDelete](nil, nil, nil).StatusCode())
 }
 
 //

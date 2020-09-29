@@ -10,38 +10,36 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type (
-	// Router stores
-	Router interface {
-		http.Handler
+// Router stores
+type Router interface {
+	http.Handler
 
-		// AddMiddleware registers middleware for all resources registered after
-		// the invocation of this method.
-		AddMiddleware(middleware Middleware)
+	// AddMiddleware registers middleware for all resources registered after
+	// the invocation of this method.
+	AddMiddleware(middleware Middleware)
 
-		// Register creates a resource from the given resource spec and set of
-		// middleware instances and registers it to the given URL pattern.
-		Register(url string, spec ResourceSpec, configs ...MiddlewareConfigFunc) error
+	// Register creates a resource from the given resource spec and set of
+	// middleware instances and registers it to the given URL pattern.
+	Register(url string, spec ResourceSpec, configs ...MiddlewareConfigFunc) error
 
-		// MustRegister calls Register and panics on error.
-		MustRegister(url string, spec ResourceSpec, configs ...MiddlewareConfigFunc)
+	// MustRegister calls Register and panics on error.
+	MustRegister(url string, spec ResourceSpec, configs ...MiddlewareConfigFunc)
 
-		RegisterHandler(url string, handler http.Handler)
-	}
+	RegisterHandler(url string, handler http.Handler)
+}
 
-	router struct {
-		services              nacelle.ServiceContainer
-		logger                nacelle.Logger
-		middleware            []Middleware
-		mux                   *mux.Router
-		resources             map[string]struct{}
-		notFoundHandler       Handler
-		notImplementedHandler Handler
-		baseCtx               context.Context
-	}
+type router struct {
+	services              nacelle.ServiceContainer
+	logger                nacelle.Logger
+	middleware            []Middleware
+	mux                   *mux.Router
+	resources             map[string]struct{}
+	notFoundHandler       Handler
+	notImplementedHandler Handler
+	baseCtx               context.Context
+}
 
-	handlerMap map[Method]Handler
-)
+type handlerMap map[Method]Handler
 
 // NewRouter creates a new router.
 func NewRouter(services nacelle.ServiceContainer, logger nacelle.Logger, configs ...RouterConfigFunc) Router {

@@ -8,18 +8,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sort"
+	"testing"
 
-	"github.com/aphistic/sweet"
 	"github.com/efritz/response"
 	"github.com/go-nacelle/nacelle"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/go-nacelle/chevron/middleware/mocks"
 )
 
-type CacheSuite struct{}
-
-func (s *CacheSuite) TestCached(t sweet.T) {
+func TestCacheMiddlewareCached(t *testing.T) {
 	var (
 		cache  = mocks.NewMockCache()
 		called = false
@@ -30,29 +29,29 @@ func (s *CacheSuite) TestCached(t sweet.T) {
 		return nil
 	}
 
-	cache.GetValueFunc = func(key string) (string, error) {
-		Expect(key).To(Equal("foo.bar"))
+	cache.GetValueFunc.SetDefaultHook(func(key string) (string, error) {
+		assert.Equal(t, "foo.bar", key)
 
 		resp := response.Respond([]byte("foobar"))
 		resp.SetStatusCode(http.StatusCreated)
 		return serialize(resp)
-	}
+	})
 
 	wrapped, err := NewResponseCache(cache).Convert(bare)
-	Expect(err).To(BeNil())
-	Expect(called).To(BeFalse())
+	assert.Nil(t, err)
+	assert.False(t, called)
 
 	r, _ := http.NewRequest("GET", "/foo/bar", nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
 
 	// Check returned value
 	_, body, err := response.Serialize(resp)
-	Expect(err).To(BeNil())
-	Expect(string(body)).To(Equal("foobar"))
-	Expect(resp.StatusCode()).To(Equal(http.StatusCreated))
+	assert.Nil(t, err)
+	assert.Equal(t, "foobar", string(body))
+	assert.Equal(t, http.StatusCreated, resp.StatusCode())
 }
 
-func (s *CacheSuite) TestCacheReadError(t sweet.T) {
+func TestCacheMiddlewareCacheReadError(t *testing.T) {
 	var (
 		cache        = mocks.NewMockCache()
 		called       = false
@@ -66,9 +65,10 @@ func (s *CacheSuite) TestCacheReadError(t sweet.T) {
 		return nil
 	}
 
-	cache.GetValueFunc = func(key string) (string, error) {
+	// TODO - can simplify these
+	cache.GetValueFunc.SetDefaultHook(func(key string) (string, error) {
 		return "", fmt.Errorf("utoh")
-	}
+	})
 
 	errorFactory := func(err error) response.Response {
 		return expectedResp
@@ -79,15 +79,15 @@ func (s *CacheSuite) TestCacheReadError(t sweet.T) {
 		WithCacheErrorFactory(errorFactory),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/foo/bar", nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(called).To(BeFalse())
-	Expect(resp).To(Equal(expectedResp))
+	assert.False(t, called)
+	assert.Equal(t, expectedResp, resp)
 }
 
-func (s *CacheSuite) TestCacheWriteError(t sweet.T) {
+func TestCacheMiddlewareCacheWriteError(t *testing.T) {
 	var (
 		cache        = mocks.NewMockCache()
 		called       = false
@@ -101,9 +101,9 @@ func (s *CacheSuite) TestCacheWriteError(t sweet.T) {
 		return response.Empty(http.StatusNoContent)
 	}
 
-	cache.SetValueFunc = func(key, value string, keys ...string) error {
+	cache.SetValueFunc.SetDefaultHook(func(key, value string, keys ...string) error {
 		return fmt.Errorf("utoh")
-	}
+	})
 
 	errorFactory := func(err error) response.Response {
 		return expectedResp
@@ -114,15 +114,15 @@ func (s *CacheSuite) TestCacheWriteError(t sweet.T) {
 		WithCacheErrorFactory(errorFactory),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/foo/bar", nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(called).To(BeTrue())
-	Expect(resp).To(Equal(expectedResp))
+	assert.True(t, called)
+	assert.Equal(t, expectedResp, resp)
 }
 
-func (s *CacheSuite) TestCacheReadCacheJunkData(t sweet.T) {
+func TestCacheMiddlewareCacheReadCacheJunkData(t *testing.T) {
 	var (
 		cache        = mocks.NewMockCache()
 		called       = false
@@ -136,9 +136,9 @@ func (s *CacheSuite) TestCacheReadCacheJunkData(t sweet.T) {
 		return response.Empty(http.StatusNoContent)
 	}
 
-	cache.GetValueFunc = func(key string) (string, error) {
+	cache.GetValueFunc.SetDefaultHook(func(key string) (string, error) {
 		return "foobar", nil
-	}
+	})
 
 	errorFactory := func(err error) response.Response {
 		return expectedResp
@@ -149,15 +149,15 @@ func (s *CacheSuite) TestCacheReadCacheJunkData(t sweet.T) {
 		WithCacheErrorFactory(errorFactory),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/foo/bar", nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(called).To(BeFalse())
-	Expect(resp).To(Equal(expectedResp))
+	assert.False(t, called)
+	assert.Equal(t, expectedResp, resp)
 }
 
-func (s *CacheSuite) TestWritesToCache(t sweet.T) {
+func TestCacheMiddlewareWritesToCache(t *testing.T) {
 	var (
 		cache = mocks.NewMockCache()
 	)
@@ -173,32 +173,34 @@ func (s *CacheSuite) TestWritesToCache(t sweet.T) {
 		WithCacheTags("foo", "bar", "baz"),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/foo/bar", nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
 
 	// Check returned value
 	_, body, err := response.Serialize(resp)
-	Expect(err).To(BeNil())
-	Expect(string(body)).To(Equal("foobar"))
-	Expect(resp.StatusCode()).To(Equal(http.StatusCreated))
+	assert.Nil(t, err)
+	assert.Equal(t, "foobar", string(body))
+	assert.Equal(t, http.StatusCreated, resp.StatusCode())
 
 	// Check cached values
-	Expect(cache.SetValueFuncCallCount()).To(Equal(1))
-	params := cache.SetValueFuncCallParams()[0]
-	Expect(params.Arg0).To(Equal("foo.bar"))
-	Expect(params.Arg2).To(ConsistOf([]string{"foo", "bar", "baz"}))
+	assert.Equal(t, 1, len(cache.SetValueFunc.History()))
+	params := cache.SetValueFunc.History()[0]
+	assert.Equal(t, "foo.bar", params.Arg0)
+	vs := params.Arg2 // TODO - rename
+	sort.Strings(vs)
+	assert.Equal(t, []string{"bar", "baz", "foo"}, vs)
 
 	deserialized, err := deserialize(params.Arg1)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	_, body2, err := response.Serialize(deserialized)
-	Expect(err).To(BeNil())
-	Expect(body).To(Equal(body2))
+	assert.Nil(t, err)
+	assert.Equal(t, body2, body)
 }
 
-func (s *CacheSuite) TestShouldNotCache(t sweet.T) {
+func TestCacheMiddlewareShouldNotCache(t *testing.T) {
 	var (
 		cache  = mocks.NewMockCache()
 		called = false
@@ -210,17 +212,17 @@ func (s *CacheSuite) TestShouldNotCache(t sweet.T) {
 	}
 
 	wrapped, err := NewResponseCache(cache).Convert(bare)
-	Expect(err).To(BeNil())
-	Expect(called).To(BeFalse())
+	assert.Nil(t, err)
+	assert.False(t, called)
 
 	r, _ := http.NewRequest("POST", "/foo/bar", nil)
 	wrapped(context.Background(), r, nacelle.NewNilLogger())
 
-	Expect(cache.GetValueFuncCallCount()).To(Equal(0))
-	Expect(cache.SetValueFuncCallCount()).To(Equal(0))
+	assert.Equal(t, 0, len(cache.GetValueFunc.History()))
+	assert.Equal(t, 0, len(cache.SetValueFunc.History()))
 }
 
-func (s *CacheSuite) TestNoCacheInstance(t sweet.T) {
+func TestCacheMiddlewareNoCacheInstance(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		resp := response.Respond([]byte("foobar"))
 		resp.SetStatusCode(http.StatusCreated)
@@ -228,36 +230,36 @@ func (s *CacheSuite) TestNoCacheInstance(t sweet.T) {
 	}
 
 	wrapped, err := NewResponseCache(nil).Convert(bare)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/foo/bar", nil)
 	wrapped(context.Background(), r, nacelle.NewNilLogger())
 }
 
-func (s *CacheSuite) TestReserializeJSON(t sweet.T) {
-	testReserialize(response.JSON(map[string]string{"foo": "bar", "baz": "bonk"}))
+func TestCacheMiddlewareReserializeJSON(t *testing.T) {
+	testReserialize(t, response.JSON(map[string]string{"foo": "bar", "baz": "bonk"}))
 }
 
-func (s *CacheSuite) TestReserializeReader(t sweet.T) {
+func TestCacheMiddlewareReserializeReader(t *testing.T) {
 	reader := bytes.NewReader([]byte(`{"foo": "bar", "baz": "bonk"}`))
-	testReserialize(response.Stream(ioutil.NopCloser(reader)))
+	testReserialize(t, response.Stream(ioutil.NopCloser(reader)))
 }
 
-func testReserialize(resp response.Response) {
+func testReserialize(t *testing.T, resp response.Response) {
 	resp.SetStatusCode(http.StatusCreated)
 	resp.AddHeader("X-Order", "a")
 	resp.AddHeader("X-Order", "b")
 	resp.AddHeader("X-Order", "c")
 
 	serialized, err := serialize(resp)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	deserialized, err := deserialize(serialized)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	header, body, err := response.Serialize(deserialized)
-	Expect(header).To(HaveKey("X-Order"))
-	Expect(header["X-Order"]).To(Equal([]string{"a", "b", "c"}))
-	Expect(body).To(MatchJSON(`{"foo": "bar", "baz": "bonk"}`))
-	Expect(deserialized.StatusCode()).To(Equal(http.StatusCreated))
+	assert.Contains(t, header, "X-Order")
+	assert.Equal(t, []string{"a", "b", "c"}, header["X-Order"])
+	assert.JSONEq(t, `{"foo": "bar", "baz": "bonk"}`, string(body))
+	assert.Equal(t, http.StatusCreated, deserialized.StatusCode())
 }

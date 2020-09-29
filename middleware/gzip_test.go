@@ -8,16 +8,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"testing"
 
-	"github.com/aphistic/sweet"
 	"github.com/efritz/response"
 	"github.com/go-nacelle/nacelle"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
 
-type GzipSuite struct{}
-
-func (s *GzipSuite) TestCompress(t sweet.T) {
+func TestGzipCompress(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		resp := response.Respond([]byte(shakespeare))
 		resp.AddHeader("Content-Length", fmt.Sprintf("%d", len(shakespeare)))
@@ -25,26 +23,27 @@ func (s *GzipSuite) TestCompress(t sweet.T) {
 	}
 
 	wrapped, err := NewGzip().Convert(bare)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/foo/bar", nil)
 	r.Header.Add("Accept-Encoding", "deflate/gzip")
 
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
 	headers, body, err := response.Serialize(resp)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
-	Expect(headers).To(Equal(http.Header{
+	expected := http.Header{
 		"Content-Encoding": []string{"gzip"},
 		"Vary":             []string{"Accept-Encoding"},
 		"Content-Type":     []string{"application/octet-stream"},
-	}))
+	}
+	assert.Equal(t, expected, headers)
 
 	content, err := readGzipContent(body)
-	Expect(err).To(BeNil())
-	Expect(string(content)).To(Equal(shakespeare))
+	assert.Nil(t, err)
+	assert.Equal(t, shakespeare, string(content))
 }
-func (s *GzipSuite) TestNoContent(t sweet.T) {
+func TestGzipNoContent(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		resp := response.Respond(nil)
 		resp.SetStatusCode(http.StatusNoContent)
@@ -52,26 +51,27 @@ func (s *GzipSuite) TestNoContent(t sweet.T) {
 	}
 
 	wrapped, err := NewGzip().Convert(bare)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/foo/bar", nil)
 	r.Header.Add("Accept-Encoding", "deflate/gzip")
 
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
 	headers, body, err := response.Serialize(resp)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
-	Expect(headers).To(Equal(http.Header{
+	expected := http.Header{
 		"Vary":         []string{"Accept-Encoding"},
 		"Content-Type": []string{"application/octet-stream"},
-	}))
+	}
+	assert.Equal(t, expected, headers)
 
 	content, err := readGzipContent(body)
-	Expect(err).To(BeNil())
-	Expect(string(content)).To(BeEmpty())
+	assert.Nil(t, err)
+	assert.Empty(t, content)
 }
 
-func (s *GzipSuite) TestCompressClosesWrappedReader(t sweet.T) {
+func TestGzipCompressClosesWrappedReader(t *testing.T) {
 	reader := &closeWrapper{
 		Reader: strings.NewReader(shakespeare),
 	}
@@ -81,35 +81,38 @@ func (s *GzipSuite) TestCompressClosesWrappedReader(t sweet.T) {
 	}
 
 	wrapped, err := NewGzip().Convert(bare)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/foo/bar", nil)
 	r.Header.Add("Accept-Encoding", "deflate/gzip")
 
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
 	_, _, err = response.Serialize(resp)
-	Expect(err).To(BeNil())
-	Expect(reader.closed).To(BeTrue())
+	assert.Nil(t, err)
+	assert.True(t, reader.closed)
 }
 
-func (s *GzipSuite) TestNonGzipAcceptEncodingDoesNotCompress(t sweet.T) {
+func TestGzipNonGzipAcceptEncodingDoesNotCompress(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		return response.Respond([]byte(shakespeare))
 	}
 
 	wrapped, err := NewGzip().Convert(bare)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/foo/bar", nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
 	headers, body, err := response.Serialize(resp)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
-	Expect(headers).To(BeEmpty())
-	Expect(body).To(Equal([]byte(shakespeare)))
+	expected := http.Header{
+		"Content-Length": []string{"3343"},
+	}
+	assert.Equal(t, expected, headers)
+	assert.Equal(t, []byte(shakespeare), body)
 }
 
-func (s *GzipSuite) TestExplicitEncodingDoesNotCompress(t sweet.T) {
+func TestGzipExplicitEncodingDoesNotCompress(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		resp := response.Respond([]byte(shakespeare))
 		resp.AddHeader("Content-Encoding", "text/plain")
@@ -118,22 +121,26 @@ func (s *GzipSuite) TestExplicitEncodingDoesNotCompress(t sweet.T) {
 	}
 
 	wrapped, err := NewGzip().Convert(bare)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/foo/bar", nil)
 	r.Header.Add("Accept-Encoding", "deflate, gzip")
 
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
 	headers, body, err := response.Serialize(resp)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
-	Expect(headers).To(Equal(http.Header{"Content-Encoding": []string{"text/plain"}}))
-	Expect(body).To(Equal([]byte(shakespeare)))
+	expected := http.Header{
+		"Content-Encoding": []string{"text/plain"},
+		"Content-Length":   []string{"3343"},
+	}
+	assert.Equal(t, expected, headers)
+	assert.Equal(t, []byte(shakespeare), body)
 }
 
-func (s *GzipSuite) TestInvalidLevel(t sweet.T) {
+func TestGzipInvalidLevel(t *testing.T) {
 	_, err := NewGzip(WithGzipLevel(400)).Convert(nil)
-	Expect(err).To(MatchError("gzip: invalid compression level: 400"))
+	assert.EqualError(t, err, "gzip: invalid compression level: 400")
 }
 
 //

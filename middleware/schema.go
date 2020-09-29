@@ -17,19 +17,17 @@ import (
 	"github.com/go-nacelle/chevron"
 )
 
-type (
-	SchemaMiddleware struct {
-		path                       string
-		errorFactory               ErrorFactory
-		badRequestFactory          SchemaBadRequestFactory
-		unprocessableEntityFactory SchemaUnprocessableEntityFactory
-	}
+type SchemaMiddleware struct {
+	path                       string
+	errorFactory               ErrorFactory
+	badRequestFactory          SchemaBadRequestFactory
+	unprocessableEntityFactory SchemaUnprocessableEntityFactory
+}
 
-	SchemaBadRequestFactory          func() response.Response
-	SchemaUnprocessableEntityFactory func([]gojsonschema.ResultError) response.Response
+type SchemaBadRequestFactory func() response.Response
+type SchemaUnprocessableEntityFactory func([]gojsonschema.ResultError) response.Response
 
-	tokenJSONData string
-)
+type tokenJSONData string
 
 var TokenJSONData = tokenJSONData("chevron.middleware.json_data")
 

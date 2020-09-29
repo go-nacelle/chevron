@@ -4,29 +4,27 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"testing"
 
-	"github.com/aphistic/sweet"
 	"github.com/efritz/response"
 	"github.com/go-nacelle/nacelle"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
 
-type RequestIDSuite struct{}
-
-func (s *RequestIDSuite) TestGetRequestID(t sweet.T) {
+func TestRequestIDGetRequestID(t *testing.T) {
 	var (
 		val = "x"
 		ctx = context.WithValue(context.Background(), TokenRequestID, val)
 	)
 
 	// Present
-	Expect(GetRequestID(ctx)).To(Equal(val))
+	assert.Equal(t, val, GetRequestID(ctx))
 
 	// Missing
-	Expect(GetRequestID(context.Background())).To(BeEmpty())
+	assert.Empty(t, GetRequestID(context.Background()))
 }
 
-func (s *RequestIDSuite) TestNewRequestIDGenerated(t sweet.T) {
+func TestRequestIDNewRequestIDGenerated(t *testing.T) {
 	var ctxVal string
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		ctxVal = GetRequestID(ctx)
@@ -34,17 +32,17 @@ func (s *RequestIDSuite) TestNewRequestIDGenerated(t sweet.T) {
 	}
 
 	wrapped, err := NewRequestID().Convert(bare)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/", nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
 
-	Expect(resp.StatusCode()).To(Equal(http.StatusNoContent))
-	Expect(resp.Header("X-Request-ID")).To(Equal(ctxVal))
-	Expect(resp.Header("X-Request-ID")).To(HaveLen(36))
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode())
+	assert.Equal(t, ctxVal, resp.Header("X-Request-ID"))
+	assert.Len(t, resp.Header("X-Request-ID"), 36)
 }
 
-func (s *RequestIDSuite) TestNewRequestIDSuppliedByClient(t sweet.T) {
+func TestRequestIDNewRequestIDSuppliedByClient(t *testing.T) {
 	var ctxVal string
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		ctxVal = GetRequestID(ctx)
@@ -52,18 +50,18 @@ func (s *RequestIDSuite) TestNewRequestIDSuppliedByClient(t sweet.T) {
 	}
 
 	wrapped, err := NewRequestID().Convert(bare)
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/", nil)
 	r.Header.Add("X-Request-ID", "1234")
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
 
-	Expect(resp.StatusCode()).To(Equal(http.StatusNoContent))
-	Expect(resp.Header("X-Request-ID")).To(Equal(ctxVal))
-	Expect(resp.Header("X-Request-ID")).To(Equal("1234"))
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode())
+	assert.Equal(t, ctxVal, resp.Header("X-Request-ID"))
+	assert.Equal(t, "1234", resp.Header("X-Request-ID"))
 }
 
-func (s *RequestIDSuite) TestRequestIDFailure(t sweet.T) {
+func TestRequestIDRequestIDFailure(t *testing.T) {
 	bare := func(ctx context.Context, r *http.Request, logger nacelle.Logger) response.Response {
 		return response.Empty(http.StatusNoContent)
 	}
@@ -85,9 +83,9 @@ func (s *RequestIDSuite) TestRequestIDFailure(t sweet.T) {
 		WithRequestIDErrorFactory(errorFactory),
 	).Convert(bare)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	r, _ := http.NewRequest("GET", "/", nil)
 	resp := wrapped(context.Background(), r, nacelle.NewNilLogger())
-	Expect(resp).To(Equal(expectedResp))
+	assert.Equal(t, expectedResp, resp)
 }

@@ -3,32 +3,30 @@ package chevron
 import (
 	"context"
 	"net/http"
+	"testing"
 
-	"github.com/aphistic/sweet"
 	"github.com/efritz/response"
 	"github.com/go-nacelle/nacelle"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
 
-type SpecSuite struct{}
-
-func (s *SpecSuite) TestEmptySpecComposition(t sweet.T) {
+func TestEmptySpecComposition(t *testing.T) {
 	// Static test for conformance to interface
 	var ts ResourceSpec = &TestSpec{}
 
 	// Show that we can "override" a method
 	resp := ts.Get(testBackground(), nil, nil)
-	Expect(resp.StatusCode()).To(Equal(http.StatusOK))
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
 
 	// Check response
 	_, data, err := response.Serialize(resp)
-	Expect(err).To(BeNil())
-	Expect(data).To(MatchJSON(`["foo", "bar", "baz"]`))
+	assert.Nil(t, err)
+	assert.JSONEq(t, `["foo", "bar", "baz"]`, string(data))
 
 	// The remaining methods should fall through to the default
 
 	for _, handler := range []Handler{ts.Options, ts.Post, ts.Put, ts.Patch, ts.Delete} {
-		Expect(handler(testBackground(), nil, nil).StatusCode()).To(Equal(http.StatusMethodNotAllowed))
+		assert.Equal(t, http.StatusMethodNotAllowed, handler(testBackground(), nil, nil).StatusCode())
 	}
 }
 

@@ -4,16 +4,14 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 
-	"github.com/aphistic/sweet"
 	"github.com/efritz/response"
 	"github.com/go-nacelle/nacelle"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
 
-type RouterSuite struct{}
-
-func (s *RouterSuite) TestRegisterAddsToMux(t sweet.T) {
+func TestRouterRegisterAddsToMux(t *testing.T) {
 	var (
 		container = nacelle.NewServiceContainer()
 		logger    = nacelle.NewNilLogger()
@@ -21,22 +19,22 @@ func (s *RouterSuite) TestRegisterAddsToMux(t sweet.T) {
 	)
 
 	// Register resource
-	Expect(router.Register("/foo", &SimpleGetSpec{})).To(BeNil())
+	assert.Nil(t, router.Register("/foo", &SimpleGetSpec{}))
 
 	// Matched route
 	req, _ := http.NewRequest("GET", "/foo", nil)
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
-	Expect(recorder.Code).To(Equal(http.StatusNoContent))
+	assert.Equal(t, http.StatusNoContent, recorder.Code)
 
 	// Unmatched route
 	req, _ = http.NewRequest("GET", "/bar", nil)
 	recorder = httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
-	Expect(recorder.Code).To(Equal(http.StatusNotFound))
+	assert.Equal(t, http.StatusNotFound, recorder.Code)
 }
 
-func (s *RouterSuite) TestRegisterInjectsServices(t sweet.T) {
+func TestRouterRegisterInjectsServices(t *testing.T) {
 	var (
 		container = nacelle.NewServiceContainer()
 		logger    = nacelle.NewNilLogger()
@@ -48,13 +46,13 @@ func (s *RouterSuite) TestRegisterInjectsServices(t sweet.T) {
 	}
 
 	spec := &ServiceSpec{}
-	Expect(router.Register("/users", spec)).To(BeNil())
-	Expect(spec.A).To(Equal("a"))
-	Expect(spec.B).To(Equal("b"))
-	Expect(spec.C).To(Equal("c"))
+	assert.Nil(t, router.Register("/users", spec))
+	assert.Equal(t, "a", spec.A)
+	assert.Equal(t, "b", spec.B)
+	assert.Equal(t, "c", spec.C)
 }
 
-func (s *RouterSuite) TestRegisterDuplicateURL(t sweet.T) {
+func TestRouterRegisterDuplicateURL(t *testing.T) {
 	var (
 		container = nacelle.NewServiceContainer()
 		logger    = nacelle.NewNilLogger()
@@ -64,12 +62,12 @@ func (s *RouterSuite) TestRegisterDuplicateURL(t sweet.T) {
 	err1 := router.Register("/users", &EmptySpec{})
 	err2 := router.Register("/users", &EmptySpec{})
 
-	Expect(err1).To(BeNil())
-	Expect(err2).NotTo(BeNil())
-	Expect(err2.Error()).To(ContainSubstring("resource already registered"))
+	assert.Nil(t, err1)
+	assert.NotNil(t, err2)
+	assert.Contains(t, err2.Error(), "resource already registered")
 }
 
-func (s *RouterSuite) TestRegisterWithMiddleware(t sweet.T) {
+func TestRouterRegisterWithMiddleware(t *testing.T) {
 	var (
 		container = nacelle.NewServiceContainer()
 		logger    = nacelle.NewNilLogger()
@@ -101,13 +99,13 @@ func (s *RouterSuite) TestRegisterWithMiddleware(t sweet.T) {
 		WithMiddleware(middlewareFactory("f")),
 	)
 
-	Expect(err).To(BeNil())
+	assert.Nil(t, err)
 
 	req, _ := http.NewRequest("GET", "/foo", nil)
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
-	Expect(recorder.Code).To(Equal(http.StatusNoContent))
-	Expect(calls).To(Equal([]string{"a", "b", "c", "d", "e", "f"}))
+	assert.Equal(t, http.StatusNoContent, recorder.Code)
+	assert.Equal(t, []string{"a", "b", "c", "d", "e", "f"}, calls)
 }
 
 //

@@ -1,8 +1,6 @@
 package middleware
 
-type (
-	SchemaConfigFunc func(m *SchemaMiddleware)
-)
+type SchemaConfigFunc func(m *SchemaMiddleware)
 
 func WithSchemaErrorFactory(factory ErrorFactory) SchemaConfigFunc {
 	return func(m *SchemaMiddleware) { m.errorFactory = factory }

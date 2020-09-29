@@ -7,25 +7,23 @@ import (
 	"github.com/go-nacelle/nacelle"
 )
 
-type (
-	// ServerInitializer implements httpbase.ServerInitializer.
-	ServerInitializer struct {
-		Services    nacelle.ServiceContainer `service:"services"`
-		Logger      nacelle.Logger           `service:"logger"`
-		initializer RouteInitializer
-		configs     []RouterConfigFunc
-	}
+// ServerInitializer implements httpbase.ServerInitializer.
+type ServerInitializer struct {
+	Services    nacelle.ServiceContainer `service:"services"`
+	Logger      nacelle.Logger           `service:"logger"`
+	initializer RouteInitializer
+	configs     []RouterConfigFunc
+}
 
-	// RouteInitializer initializes a Router instance.
-	RouteInitializer interface {
-		// Init registers resources and middleware to the router.
-		Init(config nacelle.Config, router Router) error
-	}
+// RouteInitializer initializes a Router instance.
+type RouteInitializer interface {
+	// Init registers resources and middleware to the router.
+	Init(config nacelle.Config, router Router) error
+}
 
-	// RouteInitializerFunc is a function conforming to the RouteInitializer
-	// interface.
-	RouteInitializerFunc func(config nacelle.Config, router Router) error
-)
+// RouteInitializerFunc is a function conforming to the RouteInitializer
+// interface.
+type RouteInitializerFunc func(config nacelle.Config, router Router) error
 
 // Init calls the wrapped function.
 func (f RouteInitializerFunc) Init(config nacelle.Config, router Router) error {
