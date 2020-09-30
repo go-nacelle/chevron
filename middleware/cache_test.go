@@ -1,7 +1,5 @@
 package middleware
 
-//go:generate go-mockgen github.com/efritz/gache -i Cache -d mocks
-
 import (
 	"bytes"
 	"context"

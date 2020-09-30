@@ -1,7 +1,5 @@
 package middleware
 
-//go:generate go-mockgen github.com/go-nacelle/nacelle -i Logger -d mocks
-
 import (
 	"context"
 	"fmt"
@@ -9,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/efritz/glock"
+	"github.com/derision-test/glock"
 	"github.com/efritz/response"
 	"github.com/go-nacelle/nacelle"
 	"github.com/stretchr/testify/assert"

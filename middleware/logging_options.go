@@ -1,6 +1,6 @@
 package middleware
 
-import "github.com/efritz/glock"
+import "github.com/derision-test/glock"
 
 type LoggingConfigFunc func(m *LoggingMiddleware)
 

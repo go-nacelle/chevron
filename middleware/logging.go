@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/efritz/glock"
+	"github.com/derision-test/glock"
 	"github.com/efritz/response"
 	"github.com/go-nacelle/nacelle"
 
